@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  salt         String
+  role         String   @default("user") // "admin" or "user"
+  plan         String   @default("Starter") // "Starter", "Premium", "Ultimate"
+  createdAt    DateTime @default(now())
+
+  // Preferences stored as JSON
+  preferences Json?
+
+  progressLogs  Progress[]
+  activityLogs  ActivityLog[]
+  profiles      Profile[]
+  comments      Comment[]
+  notifications Notification[]
+  sessions      Session[]
+}
+
+model Media {
+  id            String  @id @default(uuid())
+  title         String
+  originalTitle String?
+  type          String // "Movie", "Series"
+  year          Int
+  overview      String?
+
+  posterUrl   String?
+  backdropUrl String?
+  runtime     Int?
+  trailerUrl  String?
+
+  communityRating Float @default(0)
+  myRating        Float @default(0)
+
+  addedAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  saga      String?
+  moviedbId Int?
+  director  String?
+
+  // Storing simple string arrays directly in Postgres
+  genres    String[] @default([])
+  languages String[] @default([])
+  studios   String[] @default([])
+
+  // JSON objects for actors/cast to avoid complex relations for simple data
+  cast Json?
+
+  // For Movies
+  streamUrl String?
+
+  // For Series
+  seasons  Season[]
+  progress Progress[]
+  comments Comment[]
+}
+
+model Season {
+  id       String    @id @default(uuid())
+  number   Int
+  mediaId  String
+  media    Media     @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  episodes Episode[]
+
+  @@unique([mediaId, number])
+}
+
+model Episode {
+  id        String  @id @default(uuid())
+  number    Int
+  title     String?
+  streamUrl String?
+  runtime   Int?
+
+  seasonId String
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, number])
+}
+
+model Progress {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  mediaId String
+  media   Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  episodeId String? // Format: "S1E1" or null for movies
+
+  progress    Float    @default(0)
+  duration    Float    @default(0)
+  updatedAt   DateTime @updatedAt
+  isCompleted Boolean  @default(false)
+
+  @@unique([userId, mediaId, episodeId])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  username  String?
+  action    String
+  details   String
+  ip        String
+  timestamp DateTime @default(now())
+}
+
+model SagaMetadata {
+  name      String @id
+  bannerUrl String
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  avatarUrl String
+  isKids    Boolean  @default(false)
+  pin       String?
+  createdAt DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  mediaId   String
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username  String
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  mediaId   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model InvitationCode {
+  code      String   @id
+  maxUses   Int
+  usedCount Int      @default(0)
+  createdBy String // User ID of the admin who created it
+  createdAt DateTime @default(now())
+}
+
+model Session {
+  token     String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}

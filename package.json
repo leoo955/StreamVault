@@ -1,0 +1,38 @@
+{
+  "name": "netflix-jellyfin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@movie-web/providers": "^2.4.13",
+    "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.99.1",
+    "adm-zip": "^0.5.16",
+    "framer-motion": "^12.34.5",
+    "hls.js": "^1.6.15",
+    "jose": "^6.2.1",
+    "lucide-react": "^0.576.0",
+    "next": "16.1.6",
+    "node-fetch": "^3.3.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "srt-parser-2": "^1.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

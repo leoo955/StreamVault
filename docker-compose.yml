@@ -1,0 +1,20 @@
+services:
+  # ===== Frontend (Next.js) =====
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamvault-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-StreamVault}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - ./data:/app/data

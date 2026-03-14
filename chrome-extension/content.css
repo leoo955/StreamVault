@@ -1,0 +1,205 @@
+/* StreamVault Link Grabber - Content Script Styles */
+
+#sv-grab-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999999;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C6A55C 0%, #D4B96E 50%, #A8893E 100%);
+  box-shadow: 0 4px 20px rgba(198, 165, 92, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#sv-grab-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(198, 165, 92, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#sv-grab-btn .sv-icon {
+  width: 28px;
+  height: 28px;
+  color: #0A0A0A;
+}
+
+#sv-grab-btn .sv-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+#sv-grab-btn .sv-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #E53935;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  font-family: system-ui, sans-serif;
+}
+
+#sv-grab-btn.sv-pulse {
+  animation: sv-pulse-anim 0.6s ease-in-out 3;
+}
+
+@keyframes sv-pulse-anim {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Link Panel */
+#sv-link-panel {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  z-index: 999998;
+  width: 380px;
+  max-height: 450px;
+  background: #141414;
+  border: 1px solid #333;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#sv-link-panel.sv-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.95);
+}
+
+.sv-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #1a1a1a, #222);
+  border-bottom: 1px solid #333;
+}
+
+.sv-panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #C6A55C;
+  letter-spacing: 0.3px;
+}
+
+.sv-close-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.sv-close-btn:hover {
+  color: #fff;
+}
+
+.sv-panel-body {
+  padding: 12px;
+  max-height: 370px;
+  overflow-y: auto;
+}
+
+.sv-panel-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sv-panel-body::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 2px;
+}
+
+.sv-empty {
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  padding: 24px 12px;
+  line-height: 1.6;
+}
+
+.sv-empty small {
+  color: #555;
+  font-size: 11px;
+}
+
+.sv-link-item {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+
+.sv-link-item:hover {
+  border-color: #C6A55C;
+}
+
+.sv-link-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f5f5f5;
+  margin-bottom: 4px;
+}
+
+.sv-link-url {
+  font-size: 10px;
+  color: #666;
+  font-family: monospace;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+.sv-link-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sv-copy-btn,
+.sv-send-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sv-copy-btn {
+  background: #2a2a2a;
+  color: #f5f5f5;
+}
+
+.sv-copy-btn:hover {
+  background: #3a3a3a;
+}
+
+.sv-send-btn {
+  background: linear-gradient(135deg, #C6A55C, #A8893E);
+  color: #0A0A0A;
+}
+
+.sv-send-btn:hover {
+  background: linear-gradient(135deg, #D4B96E, #C6A55C);
+}
