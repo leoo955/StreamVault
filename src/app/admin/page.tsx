@@ -51,21 +51,8 @@ export default function AdminDashboard() {
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAdmin();
     fetchItems();
   }, []);
-
-  const checkAdmin = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      const data = await res.json();
-      if (!data.user || data.user.role !== "admin") {
-        window.location.href = "/";
-      }
-    } catch {
-      window.location.href = "/login";
-    }
-  };
 
   const fetchItems = async () => {
     try {
@@ -74,12 +61,6 @@ export default function AdminDashboard() {
         fetch("/api/admin/health"),
         fetch("/api/admin/logs")
       ]);
-
-      if (hRes.status === 403 || lRes.status === 403) {
-        window.location.href = "/";
-        return;
-      }
-
       const mData = await mRes.json();
       const hData = await hRes.json();
       const lData = await lRes.json();

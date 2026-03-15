@@ -36,29 +36,12 @@ export default function UserManagement() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAdmin();
     fetchUsers();
   }, []);
-
-  const checkAdmin = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      const data = await res.json();
-      if (!data.user || data.user.role !== "admin") {
-        window.location.href = "/";
-      }
-    } catch {
-      window.location.href = "/login";
-    }
-  };
 
   const fetchUsers = async () => {
     try {
       const res = await fetch("/api/users");
-      if (res.status === 403) {
-        window.location.href = "/";
-        return;
-      }
       const data = await res.json();
       if (data.users) {
         setUsers(data.users);
