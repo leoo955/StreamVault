@@ -630,11 +630,10 @@ export async function createProfile(
   userId: string,
   name: string,
   avatarUrl: string,
-  isKids: boolean = false,
-  pin?: string
+  isKids: boolean = false
 ): Promise<Profile> {
   const p = await prisma.profile.create({
-    data: { userId, name, avatarUrl, isKids, pin }
+    data: { userId, name, avatarUrl, isKids }
   });
   return {
     ...p,
