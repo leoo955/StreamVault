@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/db";
 import fs from "fs";
 import path from "path";
 
@@ -6,7 +7,11 @@ export const dynamic = "force-dynamic";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Interdit" }, { status: 403 });
+  }
   // Read all data files
   const media = readJSON("media.json", []);
   const users = readJSON("users.json", []);

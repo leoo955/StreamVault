@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMediaItems, MediaItem } from "@/lib/db";
+import { getMediaItems, getAuthUser } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Interdit" }, { status: 403 });
+  }
   try {
     const items = await getMediaItems();
 

@@ -9,23 +9,50 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
   const router = useRouter();
 
   useEffect(() => {
-    // Exempt certain routes from requiring a profile selection
-    if (
-      pathname.startsWith("/login") ||
-      pathname.startsWith("/register") ||
-      pathname.startsWith("/admin") ||
-      pathname === "/profiles"
-    ) {
+    // Public routes that don't need auth or profile
+    if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
       setHasProfile(true);
       return;
     }
 
-    const profile = sessionStorage.getItem("activeProfile");
-    if (!profile) {
-      router.push("/profiles");
-    } else {
-      setHasProfile(true);
-    }
+    // Check authentication for ALL other routes
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.user) {
+          router.push("/login");
+          return;
+        }
+
+        // User is authenticated, now check specific page requirements
+
+        // 1. Admin routes requirement
+        if (pathname.startsWith("/admin")) {
+          if (data.user.role !== "admin") {
+            router.push("/");
+          } else {
+            setHasProfile(true);
+          }
+          return;
+        }
+
+        // 2. Profile selection page (no selection needed yet)
+        if (pathname === "/profiles") {
+          setHasProfile(true);
+          return;
+        }
+
+        // 3. All other pages require an active profile
+        const activeProfile = sessionStorage.getItem("activeProfile");
+        if (!activeProfile) {
+          router.push("/profiles");
+        } else {
+          setHasProfile(true);
+        }
+      })
+      .catch(() => {
+        router.push("/login");
+      });
   }, [pathname, router]);
 
   // Prevent flash of content if we are redirecting

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Plus, Pencil, Trash2, X, Check,
+  Plus, Pencil, Trash2, X, Check, Lock,
   User, Smile, Ghost, Rocket, Star, Heart,
   Zap, Moon, Sun, Cloud, Coffee, Music,
   Gamepad2, Camera, Book, Sword, Shield,
@@ -47,6 +47,8 @@ export default function ProfilesPage() {
   const [pinProfile, setPinProfile] = useState<Profile | null>(null);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
+  const [editProfile, setEditProfile] = useState<Profile | null>(null);
+  const [isKids, setIsKids] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -68,7 +70,20 @@ export default function ProfilesPage() {
   };
 
   const selectProfile = (profile: Profile) => {
-    if (editing) return;
+    if (editing) {
+      // Edit mode: open modal with profile data
+      setEditProfile(profile);
+      setNewName(profile.name);
+      setIsKids(profile.isKids);
+      const parts = profile.avatarUrl.split(":");
+      if (parts[0] === "icon") {
+        setSelectedIcon(parts[1]);
+        setSelectedColor(parts[2]);
+      }
+      setNewPin(""); // Don't show existing hashed PIN
+      setShowCreate(true);
+      return;
+    }
     if (profile.pin) {
       // Profile has a PIN — show PIN entry modal
       setPinProfile(profile);
@@ -94,17 +109,36 @@ export default function ProfilesPage() {
     }
   };
 
-  const createProfile = async () => {
+  const saveProfile = async () => {
     if (!newName.trim()) return;
 
     const avatarUrl = `icon:${selectedIcon}:${selectedColor}`;
-    await fetch("/api/profiles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName, avatarUrl, pin: newPin.trim() || undefined }),
-    });
+    const payload = { 
+      name: newName, 
+      avatarUrl, 
+      isKids,
+      pin: newPin.trim() || (editProfile ? undefined : null) 
+    };
+
+    if (editProfile) {
+      // Update existing
+      await fetch("/api/profiles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, id: editProfile.id }),
+      });
+    } else {
+      // Create new
+      await fetch("/api/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    }
+    
     setNewName("");
     setNewPin("");
+    setEditProfile(null);
     setShowCreate(false);
     fetchProfiles();
   };
@@ -182,6 +216,12 @@ export default function ProfilesPage() {
                 </span>
               )}
 
+              {profile.pin && (
+                <div className="absolute top-1 right-1 bg-deep-black/60 p-1.5 rounded-full backdrop-blur-md z-10">
+                  <Lock className="w-3 h-3 text-gold" />
+                </div>
+              )}
+
               {/* Edit/Delete overlay */}
               {editing && (
                 <motion.div
@@ -189,12 +229,20 @@ export default function ProfilesPage() {
                   animate={{ opacity: 1 }}
                   className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl"
                 >
-                  <button
-                    onClick={(e) => { e.stopPropagation(); removeProfile(profile.id); }}
-                    className="p-2 bg-red-600/80 rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5 text-white" />
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); selectProfile(profile); }}
+                      className="p-3 bg-gold text-deep-black rounded-full hover:scale-110 transition-transform"
+                    >
+                      <Pencil className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeProfile(profile.id); }}
+                      className="p-3 bg-red-600/80 rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5 text-white" />
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </motion.div>
@@ -207,7 +255,15 @@ export default function ProfilesPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: profiles.length * 0.1 }}
               className="cursor-pointer group"
-              onClick={() => setShowCreate(true)}
+              onClick={() => {
+                setEditProfile(null);
+                setNewName("");
+                setIsKids(false);
+                setSelectedIcon("User");
+                setSelectedColor("#E53935");
+                setNewPin("");
+                setShowCreate(true);
+              }}
             >
               <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl border-2 border-dashed border-text-muted/30 flex items-center justify-center transition-all group-hover:border-gold group-hover:bg-gold/5">
                 <Plus className="w-10 h-10 text-text-muted group-hover:text-gold transition-colors" />
@@ -257,8 +313,10 @@ export default function ProfilesPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-text-primary">Nouveau profil</h2>
-                <button onClick={() => setShowCreate(false)}>
+                <h2 className="text-lg font-bold text-text-primary">
+                  {editProfile ? `Modifier ${editProfile.name}` : "Nouveau profil"}
+                </h2>
+                <button onClick={() => { setShowCreate(false); setEditProfile(null); }}>
                   <X className="w-5 h-5 text-text-muted hover:text-text-primary" />
                 </button>
               </div>
@@ -312,31 +370,47 @@ export default function ProfilesPage() {
                 </div>
               </div>
 
-              {/* Color picker */}
-              <div>
-                <p className="text-xs text-text-muted mb-2">Couleur</p>
-                <div className="flex flex-wrap gap-2">
-                  {AVATAR_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`w-8 h-8 rounded-full transition-all ${
-                        selectedColor === color ? "ring-2 ring-white scale-110" : "hover:scale-105"
-                      }`}
-                      style={{ background: color }}
+              {/* Mode Kids & PIN */}
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setIsKids(!isKids)}
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                    isKids ? "border-gold bg-gold/10" : "border-surface-light bg-deep-black hover:border-text-muted"
+                  }`}
+                >
+                  <Smile className={`w-5 h-5 mb-1 ${isKids ? "text-gold" : "text-text-muted"}`} />
+                  <span className="text-[10px] font-bold">MODE KIDS</span>
+                </button>
+
+                <div className="flex flex-col gap-1.5">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={newPin}
+                      onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Code PIN (4 chiffres)"
+                      className="w-full text-xs px-3 py-3 rounded-xl outline-none"
+                      style={{
+                        background: "var(--deep-black)",
+                        border: "1px solid var(--surface-light)",
+                        color: "var(--text-primary)",
+                      }}
                     />
-                  ))}
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-text-muted" />
+                  </div>
                 </div>
               </div>
 
-              {/* Create button */}
+              {/* Create/Save button */}
               <button
-                onClick={createProfile}
+                onClick={saveProfile}
                 disabled={!newName.trim()}
                 className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-30"
                 style={{ background: "var(--gold)", color: "var(--deep-black)" }}
               >
-                Créer le profil
+                {editProfile ? "Enregistrer les modifications" : "Créer le profil"}
               </button>
             </motion.div>
           </motion.div>
