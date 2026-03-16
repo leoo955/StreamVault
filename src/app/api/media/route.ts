@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getAuthUser,
   getMediaItems,
+  getMediaItemsOptimized,
   createMediaItem,
 } from "@/lib/db";
 
 // GET /api/media — list all media items
-export async function GET() {
-  const items = await getMediaItems();
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const isSummary = searchParams.get("summary") === "true";
+  const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined;
+
+  const items = isSummary 
+    ? await getMediaItemsOptimized(limit) 
+    : await getMediaItems();
+
   return NextResponse.json({ items });
 }
 

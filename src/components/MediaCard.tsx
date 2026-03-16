@@ -65,8 +65,9 @@ export default function MediaCard({ item, index = 0 }: MediaCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "50px" }}
+      transition={{ duration: 0.4 }}
       className="group relative shrink-0 w-[160px] md:w-[220px]"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

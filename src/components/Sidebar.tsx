@@ -84,7 +84,7 @@ export default function Sidebar() {
         className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 transition-all"
         style={{
           background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.8) 100%)",
-          backdropFilter: "blur(20px)",
+          backdropFilter: "blur(8px)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -105,7 +105,7 @@ export default function Sidebar() {
         className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between px-6 transition-all"
         style={{
           background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.8) 100%)",
-          backdropFilter: "blur(20px)",
+          backdropFilter: "blur(8px)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -242,7 +242,7 @@ export default function Sidebar() {
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-end justify-around px-2 pb-safe"
         style={{
           background: "linear-gradient(to top, rgba(5,5,5,0.98) 0%, rgba(5,5,5,0.9) 100%)",
-          backdropFilter: "blur(20px)",
+          backdropFilter: "blur(8px)",
           borderTop: "1px solid rgba(255,255,255,0.06)",
           paddingTop: "8px",
           paddingBottom: "max(env(safe-area-inset-bottom, 8px), 8px)",
