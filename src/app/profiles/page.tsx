@@ -47,6 +47,7 @@ export default function ProfilesPage() {
   const [pinProfile, setPinProfile] = useState<Profile | null>(null);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -95,18 +96,25 @@ export default function ProfilesPage() {
   };
 
   const createProfile = async () => {
-    if (!newName.trim()) return;
+    if (!newName.trim() || isCreating) return;
 
-    const avatarUrl = `icon:${selectedIcon}:${selectedColor}`;
-    await fetch("/api/profiles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName, avatarUrl, pin: newPin.trim() || undefined }),
-    });
-    setNewName("");
-    setNewPin("");
-    setShowCreate(false);
-    fetchProfiles();
+    setIsCreating(true);
+    try {
+      const avatarUrl = `icon:${selectedIcon}:${selectedColor}`;
+      await fetch("/api/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName, avatarUrl, pin: newPin.trim() || undefined }),
+      });
+      setNewName("");
+      setNewPin("");
+      setShowCreate(false);
+      fetchProfiles();
+    } catch (error) {
+      console.error("Failed to create profile:", error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const removeProfile = async (id: string) => {
@@ -332,11 +340,18 @@ export default function ProfilesPage() {
               {/* Create button */}
               <button
                 onClick={createProfile}
-                disabled={!newName.trim()}
-                className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-30"
+                disabled={!newName.trim() || isCreating}
+                className="w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{ background: "var(--gold)", color: "var(--deep-black)" }}
               >
-                Créer le profil
+                {isCreating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-deep-black/30 border-t-deep-black rounded-full animate-spin" />
+                    Création...
+                  </>
+                ) : (
+                  "Créer le profil"
+                )}
               </button>
             </motion.div>
           </motion.div>

@@ -79,6 +79,27 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* ===== MOBILE: Top Bar ===== */}
+      <header
+        className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 transition-all"
+        style={{
+          background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.8) 100%)",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/icon-192.png" alt="Logo" className="w-7 h-7 rounded-full object-contain" />
+          <span className="font-bold text-sm gold-text tracking-tight">StreamVault</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/search" className="p-2 text-text-muted hover:text-white transition-colors">
+            <Search className="w-5 h-5" />
+          </Link>
+          {user && <NotificationBell />}
+        </div>
+      </header>
+
       {/* ===== DESKTOP: Top Horizontal Navbar ===== */}
       <header
         className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between px-6 transition-all"

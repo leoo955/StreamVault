@@ -12,7 +12,7 @@ const STUDIOS = [
   },
   {
     name: "DC",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/1/1c/DC_Comics_logo.svg",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3d/DC_Comics_logo.svg",
     glowColor: "#0476F2",
   },
   {
@@ -56,7 +56,7 @@ export default function StudioRow() {
         <h2 className="text-[10px] md:text-sm font-black uppercase tracking-[0.2em] text-text-muted">
           Franchises & Studios
         </h2>
-        <button className="text-[10px] md:text-xs font-bold text-text-muted hover:text-white transition-colors uppercase">
+        <button className="text-[11px] md:text-xs font-bold text-text-muted hover:text-white transition-colors uppercase bg-white/5 md:bg-transparent px-2 py-1 rounded-md">
           Voir plus &rsaquo;
         </button>
       </div>
