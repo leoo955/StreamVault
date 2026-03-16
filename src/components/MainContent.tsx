@@ -12,7 +12,7 @@ export default function MainContent({ children }: { children: ReactNode }) {
   return (
     <main
       className={`transition-all duration-300 flex flex-col min-h-screen ${
-        hideNav ? "" : "pt-0 md:pt-16 pb-20 md:pb-0"
+        hideNav ? "" : "pt-14 md:pt-16 pb-20 md:pb-0"
       }`}
     >
       <div className="flex-1">

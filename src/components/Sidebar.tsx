@@ -79,12 +79,33 @@ export default function Sidebar() {
 
   return (
     <>
+      {/* ===== MOBILE: Top Bar ===== */}
+      <header
+        className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 transition-all"
+        style={{
+          background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.8) 100%)",
+          backdropFilter: "blur(8px)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/icon-192.png" alt="Logo" className="w-7 h-7 rounded-full object-contain" />
+          <span className="font-bold text-sm gold-text tracking-tight">StreamVault</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/search" className="p-2 text-text-muted hover:text-white transition-colors">
+            <Search className="w-5 h-5" />
+          </Link>
+          {user && <NotificationBell />}
+        </div>
+      </header>
+
       {/* ===== DESKTOP: Top Horizontal Navbar ===== */}
       <header
         className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between px-6 transition-all"
         style={{
           background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.8) 100%)",
-          backdropFilter: "blur(20px)",
+          backdropFilter: "blur(8px)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -221,7 +242,7 @@ export default function Sidebar() {
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-end justify-around px-2 pb-safe"
         style={{
           background: "linear-gradient(to top, rgba(5,5,5,0.98) 0%, rgba(5,5,5,0.9) 100%)",
-          backdropFilter: "blur(20px)",
+          backdropFilter: "blur(8px)",
           borderTop: "1px solid rgba(255,255,255,0.06)",
           paddingTop: "8px",
           paddingBottom: "max(env(safe-area-inset-bottom, 8px), 8px)",
@@ -249,6 +270,18 @@ export default function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Admin link */}
+        {user?.role === "admin" && (
+          <Link href="/admin" className="flex-1">
+            <div className="flex flex-col items-center gap-0.5 py-1">
+              <LayoutDashboard className={`w-5 h-5 transition-colors ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`} />
+              <span className={`text-[10px] font-medium ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`}>
+                Admin
+              </span>
+            </div>
+          </Link>
+        )}
 
         {/* Search */}
         <Link href="/search" className="flex-1">

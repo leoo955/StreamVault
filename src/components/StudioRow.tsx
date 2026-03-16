@@ -7,32 +7,32 @@ import StudioCard from "./StudioCard";
 const STUDIOS = [
   {
     name: "Marvel",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b9/Marvel_Logo.svg",
+    logoUrl: "/studios/marvel.svg",
     glowColor: "#E62429",
   },
   {
     name: "DC",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/1/1c/DC_Comics_logo.svg",
+    logoUrl: "/studios/dc.svg",
     glowColor: "#0476F2",
   },
   {
     name: "Netflix",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
+    logoUrl: "/studios/netflix.svg",
     glowColor: "#E50914",
   },
   {
     name: "Prime Video",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Prime_Video.png",
+    logoUrl: "/studios/prime.png",
     glowColor: "#00A8E1",
   },
   {
     name: "Star Wars",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg",
+    logoUrl: "/studios/starwars.svg",
     glowColor: "#FFE81F",
   },
   {
     name: "Disney+",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg",
+    logoUrl: "/studios/disney.svg",
     glowColor: "#0063E5",
   },
 ];
@@ -56,7 +56,7 @@ export default function StudioRow() {
         <h2 className="text-[10px] md:text-sm font-black uppercase tracking-[0.2em] text-text-muted">
           Franchises & Studios
         </h2>
-        <button className="text-[10px] md:text-xs font-bold text-text-muted hover:text-white transition-colors uppercase">
+        <button className="text-[11px] md:text-xs font-bold text-text-muted hover:text-white transition-colors uppercase bg-white/5 md:bg-transparent px-2 py-1 rounded-md">
           Voir plus &rsaquo;
         </button>
       </div>

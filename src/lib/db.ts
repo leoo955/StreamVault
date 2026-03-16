@@ -11,7 +11,7 @@ export const prisma =
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-// ===== User Types & Functions =====
+// ===== Types =====
 
 export interface User {
   id: string;
@@ -45,6 +45,70 @@ export interface Session {
   expiresAt: string;
 }
 
+export interface Episode {
+  number: number;
+  title: string;
+  streamUrl: string;
+  runtime: number;
+  imageUrl?: string;
+  overview?: string;
+}
+
+export interface Season {
+  number: number;
+  episodes: Episode[];
+}
+
+export interface NormalizedPerson {
+  id: string;
+  name: string;
+  role?: string;
+  type: string;
+  imageUrl?: string;
+}
+
+export interface MediaItem {
+  id: string;
+  title: string;
+  overview: string;
+  year: number;
+  runtime: number;
+  genres: string[];
+  languages?: string[];
+  type: "Movie" | "Series" | "Episode" | "Anime";
+  posterUrl: string;
+  backdropUrl: string;
+  streamUrl: string;
+  communityRating?: number;
+  tagline?: string;
+  saga?: string;
+  moviedbId?: number;
+  director?: string;
+  cast?: NormalizedPerson[];
+  subtitles?: { lang: string; url: string }[];
+  studios?: string[];
+  seasons?: Season[];
+  dateAdded: string;
+  addedBy?: string;
+}
+
+// Keep only what is strictly necessary for MediaCard (poster, title, year, runtime, rating, type)
+export interface MediaItemSummary {
+  id: string;
+  title: string;
+  overview: string; // Restored for Hero
+  year: number;
+  runtime: number;
+  genres: string[];
+  type: "Movie" | "Series" | "Episode" | "Anime";
+  posterUrl: string;
+  backdropUrl: string; // Needed for Hero
+  streamUrl: string;   // Needed for Hover Preview
+  communityRating?: number;
+  saga?: string;       // Needed for SagaRow
+  dateAdded: string;
+}
+
 export interface ActivityLog {
   id: string;
   userId?: string;
@@ -59,6 +123,8 @@ export interface SagaMetadata {
   name: string;
   bannerUrl: string;
 }
+
+// ===== User Functions =====
 
 function hashPassword(password: string, salt: string): string {
   return crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
@@ -238,65 +304,18 @@ export async function deleteSession(token: string): Promise<void> {
   await prisma.session.delete({ where: { token } }).catch(() => null);
 }
 
-// ===== Media Types & Functions =====
-
-export interface Episode {
-  number: number;
-  title: string;
-  streamUrl: string;
-  runtime: number;
-  imageUrl?: string;
-  overview?: string;
-}
-
-export interface Season {
-  number: number;
-  episodes: Episode[];
-}
-
-export interface NormalizedPerson {
-  id: string;
-  name: string;
-  role?: string;
-  type: string;
-  imageUrl?: string;
-}
-
-export interface MediaItem {
-  id: string;
-  title: string;
-  overview: string;
-  year: number;
-  runtime: number;
-  genres: string[];
-  languages?: string[];
-  type: "Movie" | "Series";
-  posterUrl: string;
-  backdropUrl: string;
-  streamUrl: string;
-  communityRating?: number;
-  tagline?: string;
-  studios?: string[];
-  seasons?: Season[];
-  saga?: string;
-  moviedbId?: number;
-  director?: string;
-  cast?: NormalizedPerson[];
-  subtitles?: { lang: string; url: string }[];
-  dateAdded: string;
-  addedBy?: string; 
-}
+// ===== Media Operations =====
 
 function mapPrismaMedia(m: any): MediaItem {
   return {
     id: m.id,
     title: m.title,
-    overview: m.overview || "",
+    overview: m.overview,
+    type: m.type as any,
     year: m.year,
-    runtime: m.runtime || 0,
-    genres: m.genres || [],
+    runtime: m.runtime,
+    genres: m.genres,
     languages: m.languages || [],
-    type: m.type as "Movie" | "Series",
     posterUrl: m.posterUrl || "",
     backdropUrl: m.backdropUrl || "",
     streamUrl: m.streamUrl || "",
@@ -319,6 +338,24 @@ function mapPrismaMedia(m: any): MediaItem {
   };
 }
 
+function mapPrismaMediaSummary(m: any): MediaItemSummary {
+  return {
+    id: m.id,
+    title: m.title,
+    overview: m.overview ? (m.overview.length > 160 ? m.overview.substring(0, 157) + "..." : m.overview) : "",
+    type: m.type as any,
+    year: m.year,
+    runtime: m.runtime,
+    genres: m.genres,
+    posterUrl: m.posterUrl || "",
+    backdropUrl: m.backdropUrl || "",
+    streamUrl: m.streamUrl || "",
+    communityRating: m.communityRating || 0,
+    saga: m.saga || undefined,
+    dateAdded: m.addedAt.toISOString(),
+  };
+}
+
 export async function getMediaItems(): Promise<MediaItem[]> {
   const media = await prisma.media.findMany({
     include: {
@@ -329,6 +366,14 @@ export async function getMediaItems(): Promise<MediaItem[]> {
     orderBy: { addedAt: "desc" }
   });
   return media.map(mapPrismaMedia);
+}
+
+export async function getMediaItemsOptimized(limit?: number): Promise<MediaItemSummary[]> {
+  const media = await prisma.media.findMany({
+    take: limit,
+    orderBy: { addedAt: "desc" }
+  });
+  return media.map(mapPrismaMediaSummary);
 }
 
 export async function getMediaItemById(id: string): Promise<MediaItem | undefined> {
