@@ -271,6 +271,18 @@ export default function Sidebar() {
           );
         })}
 
+        {/* Admin link */}
+        {user?.role === "admin" && (
+          <Link href="/admin" className="flex-1">
+            <div className="flex flex-col items-center gap-0.5 py-1">
+              <LayoutDashboard className={`w-5 h-5 transition-colors ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`} />
+              <span className={`text-[10px] font-medium ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`}>
+                Admin
+              </span>
+            </div>
+          </Link>
+        )}
+
         {/* Search */}
         <Link href="/search" className="flex-1">
           <div className="flex flex-col items-center gap-0.5 py-1">

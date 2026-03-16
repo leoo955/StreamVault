@@ -14,7 +14,7 @@ export default function StudioCard({ name, logoUrl, glowColor }: StudioCardProps
     <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.98 }}
-      className="relative aspect-video w-[160px] md:w-[240px] rounded-xl cursor-pointer overflow-hidden group transition-all duration-300 shadow-xl"
+      className="relative aspect-video w-[180px] md:w-[240px] rounded-xl cursor-pointer overflow-hidden group transition-all duration-300 shadow-xl"
       style={{
         background: "rgba(255, 255, 255, 0.05)",
         backdropFilter: "blur(10px)",
@@ -30,15 +30,14 @@ export default function StudioCard({ name, logoUrl, glowColor }: StudioCardProps
       />
 
       {/* Logo Container */}
-      <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="relative w-full h-full">
-          <Image
-            src={logoUrl}
-            alt={name}
-            fill
-            className="object-contain filter transition-all duration-300 group-hover:brightness-110 drop-shadow-2xl"
-          />
-        </div>
+      <div className="absolute inset-0 flex items-center justify-center p-5 md:p-8">
+        <Image
+          src={logoUrl}
+          alt={name}
+          fill
+          unoptimized
+          className="object-contain filter transition-all duration-300 group-hover:brightness-110 drop-shadow-2xl px-2"
+        />
       </div>
 
       {/* Glass Border overlay */}

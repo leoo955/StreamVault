@@ -7,32 +7,32 @@ import StudioCard from "./StudioCard";
 const STUDIOS = [
   {
     name: "Marvel",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b9/Marvel_Logo.svg",
+    logoUrl: "/studios/marvel.svg",
     glowColor: "#E62429",
   },
   {
     name: "DC",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3d/DC_Comics_logo.svg",
+    logoUrl: "/studios/dc.svg",
     glowColor: "#0476F2",
   },
   {
     name: "Netflix",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
+    logoUrl: "/studios/netflix.svg",
     glowColor: "#E50914",
   },
   {
     name: "Prime Video",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Prime_Video.png",
+    logoUrl: "/studios/prime.png",
     glowColor: "#00A8E1",
   },
   {
     name: "Star Wars",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg",
+    logoUrl: "/studios/starwars.svg",
     glowColor: "#FFE81F",
   },
   {
     name: "Disney+",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg",
+    logoUrl: "/studios/disney.svg",
     glowColor: "#0063E5",
   },
 ];
