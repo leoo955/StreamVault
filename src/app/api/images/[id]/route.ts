@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { getAuthUser } from "@/lib/db";
 
 // Image proxy — serves Jellyfin images without exposing the server
 const JELLYFIN_URL = process.env.JELLYFIN_URL || "http://localhost:8096";
@@ -9,6 +10,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const user = await getAuthUser(request);
+  if (!user) return new NextResponse("Unauthorized", { status: 401 });
+
   const ip = request.headers.get("x-forwarded-for") || "anonymous";
   const { allowed } = rateLimit(ip);
   if (!allowed) {

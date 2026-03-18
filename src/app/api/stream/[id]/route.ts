@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimitStream } from "@/lib/rate-limit";
+import { getAuthUser } from "@/lib/db";
 
 // Stream proxy with Range header passthrough for seeking support
 const JELLYFIN_URL = process.env.JELLYFIN_URL || "http://localhost:8096";
@@ -9,6 +10,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Auth required for streaming
+  const user = await getAuthUser(request);
+  if (!user) return new NextResponse("Unauthorized", { status: 401 });
+
   const ip = request.headers.get("x-forwarded-for") || "anonymous";
   const { allowed } = rateLimitStream(ip);
   if (!allowed) {

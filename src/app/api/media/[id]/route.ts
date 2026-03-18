@@ -8,11 +8,14 @@ import {
 
 export const dynamic = "force-dynamic";
 
-// GET /api/media/[id]
+// GET /api/media/[id] (auth required)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const user = await getAuthUser(request);
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const { id } = await params;
   const item = await getMediaItemById(id);
   if (!item) {

@@ -15,6 +15,7 @@ import {
   Tv,
   Clapperboard,
 } from "lucide-react";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 interface Analytics {
   media: { total: number; movies: number; series: number; totalEpisodes: number };
@@ -28,18 +29,20 @@ interface Analytics {
 }
 
 export default function AdminAnalyticsPage() {
+  const isAdmin = useAdminAuth();
   const [data, setData] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isAdmin) return;
     fetch("/api/admin/analytics")
       .then((r) => r.json())
       .then(setData)
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [isAdmin]);
 
-  if (loading) {
+  if (!isAdmin || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin" />

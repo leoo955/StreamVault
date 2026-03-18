@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMediaItemById, updateMediaItem } from "@/lib/db";
+import { getMediaItemById, updateMediaItem, getAuthUser } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +34,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Admin only — modifies media data
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
   const { id } = await params;
 
   const item = await getMediaItemById(id);

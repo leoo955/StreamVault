@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { getMediaItems, updateMediaItem } from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
+import { getMediaItems, updateMediaItem, getAuthUser } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,13 @@ async function translateChunk(text: string): Promise<string> {
  * POST /api/media/translate-all
  * Translates all media overviews (movies + series) to French.
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // Admin only — modifies all media data
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
   const items = await getMediaItems();
   let translatedCount = 0;
 

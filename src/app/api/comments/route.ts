@@ -3,8 +3,11 @@ import { getAuthUser, getComments, addComment, deleteComment } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/comments?mediaId=xxx
+// GET /api/comments?mediaId=xxx (auth required)
 export async function GET(request: NextRequest) {
+  const user = await getAuthUser(request);
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const mediaId = request.nextUrl.searchParams.get("mediaId");
   if (!mediaId) return NextResponse.json({ error: "mediaId requis" }, { status: 400 });
 

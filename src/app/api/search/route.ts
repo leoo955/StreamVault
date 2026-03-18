@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMediaItems } from "@/lib/db";
+import { getMediaItems, getAuthUser } from "@/lib/db";
 
-// GET /api/search?q=query&type=Movie|Series&genre=Action
+// GET /api/search?q=query&type=Movie|Series&genre=Action (auth required)
 export async function GET(req: NextRequest) {
+  const user = await getAuthUser(req);
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const q = req.nextUrl.searchParams.get("q")?.toLowerCase() || "";
   const type = req.nextUrl.searchParams.get("type") || "";
   const genre = req.nextUrl.searchParams.get("genre") || "";

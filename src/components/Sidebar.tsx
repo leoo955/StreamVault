@@ -19,7 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import SearchBar from "./SearchBar";
+
 import NotificationBell from "./NotificationBell";
 
 interface UserData {
@@ -81,11 +81,10 @@ export default function Sidebar() {
     <>
       {/* ===== MOBILE: Top Bar ===== */}
       <header
-        className="md:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 transition-all"
+        className="md:hidden fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-4 transition-all"
         style={{
-          background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.8) 100%)",
-          backdropFilter: "blur(8px)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)",
+          paddingBottom: "12px",
         }}
       >
         <Link href="/" className="flex items-center gap-2">
@@ -104,9 +103,8 @@ export default function Sidebar() {
       <header
         className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center justify-between px-6 transition-all"
         style={{
-          background: "linear-gradient(to bottom, rgba(5,5,5,0.95) 0%, rgba(5,5,5,0.8) 100%)",
-          backdropFilter: "blur(8px)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)",
+          paddingBottom: "8px",
         }}
       >
         {/* Left: Logo */}
@@ -116,24 +114,25 @@ export default function Sidebar() {
         </Link>
 
         {/* Center: Nav Items */}
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-7 lg:gap-12">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link key={item.href} href={item.href}>
                 <div
-                  className={`relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`relative flex items-center transition-all duration-300 ${
                     isActive
-                      ? "text-gold"
-                      : "text-text-muted hover:text-text-primary hover:bg-white/5"
+                      ? "text-white"
+                      : "text-text-muted hover:text-white"
                   }`}
                 >
-                  <item.icon className="w-4 h-4" />
-                  <span className="hidden lg:inline">{t(item.labelKey)}</span>
+                  <span className="text-[11px] lg:text-[13px] font-black tracking-[0.2em] uppercase">
+                    {t(item.labelKey)}
+                  </span>
                   {isActive && (
                     <motion.div
                       layoutId="navIndicator"
-                      className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
+                      className="absolute -bottom-2.5 left-0 right-0 h-[2.5px] rounded-full"
                       style={{ background: "var(--gold)" }}
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
@@ -147,14 +146,15 @@ export default function Sidebar() {
           {user?.role === "admin" && (
             <Link href="/admin">
               <div
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center transition-all duration-300 ${
                   pathname?.startsWith("/admin")
                     ? "text-gold"
-                    : "text-text-muted hover:text-text-primary hover:bg-white/5"
+                    : "text-text-muted hover:text-white"
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4" />
-                <span className="hidden lg:inline">{t("nav.admin")}</span>
+                <span className="text-[11px] lg:text-[13px] font-black tracking-[0.2em] uppercase">
+                  {t("nav.admin")}
+                </span>
               </div>
             </Link>
           )}
@@ -162,11 +162,8 @@ export default function Sidebar() {
 
         {/* Right: Search + Notifications + Account */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Search */}
-          <div className="hidden lg:block w-56">
-            <SearchBar />
-          </div>
-          <Link href="/search" className="lg:hidden p-2 rounded-lg hover:bg-white/5 text-text-muted hover:text-text-primary transition-colors">
+          {/* Search — always links to dedicated search page */}
+          <Link href="/search" className="p-2.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text-primary transition-colors">
             <Search className="w-5 h-5" />
           </Link>
 

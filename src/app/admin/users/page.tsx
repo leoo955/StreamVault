@@ -16,6 +16,7 @@ import {
   Lock as LockIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 interface UserData {
   id: string;
@@ -30,14 +31,17 @@ interface UserData {
 }
 
 export default function UserManagement() {
+  const isAdmin = useAdminAuth();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (isAdmin) fetchUsers();
+  }, [isAdmin]);
+
+  if (!isAdmin) return <div className="fixed inset-0 z-[200] bg-deep-black flex items-center justify-center"><div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" /></div>;
 
   const fetchUsers = async () => {
     try {
