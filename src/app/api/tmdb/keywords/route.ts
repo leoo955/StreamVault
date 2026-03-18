@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
   const tmdbId = request.nextUrl.searchParams.get("tmdbId");
 
   if (!tmdbId) {

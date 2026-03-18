@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/db";
 
 // Fallback logic to fetch subtitles utilizing a community proxy or direct srt files
 // Since Subdl blocked free unauthenticated access with a schema error, we switch to an alternative approach.
@@ -8,6 +9,9 @@ import AdmZip from "adm-zip";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const user = await getAuthUser(req);
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const tmdbId = req.nextUrl.searchParams.get("tmdbId");
   const type = req.nextUrl.searchParams.get("type") || "movie";
   const lang = req.nextUrl.searchParams.get("lang") || "fr";
@@ -76,7 +80,7 @@ export async function GET(req: NextRequest) {
   try {
     const isMovie = type === "movie";
     const subdlApiUrl = new URL("https://api.subdl.com/api/v1/subtitles");
-    const apiKey = process.env.SUBDL_API_KEY || "d85b1f3d828d1bd4b4c10a48b37e96b5";
+    const apiKey = process.env.SUBDL_API_KEY || "";
     subdlApiUrl.searchParams.append("api_key", apiKey);
     subdlApiUrl.searchParams.append("tmdb_id", tmdbId);
     if (!isMovie) {

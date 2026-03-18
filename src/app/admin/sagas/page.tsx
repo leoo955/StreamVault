@@ -6,6 +6,7 @@ import {
   ArrowLeft, Search, Save, Film, Tv, Play, Image as ImageIcon, Sparkles, ChevronRight, Check
 } from "lucide-react";
 import Link from "next/link";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const S = {
   background: "var(--surface)",
@@ -19,14 +20,17 @@ interface SagaRow {
 }
 
 export default function AdminSagasPage() {
+  const isAdmin = useAdminAuth();
   const [sagas, setSagas] = useState<SagaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isAdmin) fetchData();
+  }, [isAdmin]);
+
+  if (!isAdmin) return <div className="fixed inset-0 z-[200] bg-deep-black flex items-center justify-center"><div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" /></div>;
 
   const fetchData = async () => {
     try {

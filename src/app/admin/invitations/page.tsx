@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Ticket, Plus, Trash2, ShieldCheck, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 interface InvitationCode {
   code: string;
@@ -14,6 +15,7 @@ interface InvitationCode {
 }
 
 export default function InvitationsManagement() {
+  const isAdmin = useAdminAuth();
   const [codes, setCodes] = useState<InvitationCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -23,8 +25,10 @@ export default function InvitationsManagement() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCodes();
-  }, []);
+    if (isAdmin) fetchCodes();
+  }, [isAdmin]);
+
+  if (!isAdmin) return <div className="fixed inset-0 z-[200] bg-deep-black flex items-center justify-center"><div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" /></div>;
 
   const fetchCodes = async () => {
     try {

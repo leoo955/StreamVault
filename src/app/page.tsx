@@ -174,7 +174,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* ─── HERO CAROUSEL ─── */}
       {hero && (
-        <div className="relative h-[80vh] min-h-[500px] max-h-[850px] w-full overflow-hidden">
+        <div className="relative h-[100vh] w-full overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={hero.id}
@@ -195,42 +195,101 @@ export default function HomePage() {
             </motion.div>
           </AnimatePresence>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--deep-black)] via-[var(--deep-black)]/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--deep-black)]/80 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--deep-black)] via-[var(--deep-black)]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--deep-black)]/70 via-transparent to-transparent" />
 
+          {/* Hero Info — bottom left */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-20 z-10">
             <motion.div
               key={hero.id + "-info"}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
+              className="max-w-2xl"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 rounded bg-gold text-deep-black text-[10px] font-black uppercase tracking-widest">
-                  {hero.type === "Movie" ? "Film" : "Série"}
-                </span>
-                {hero.communityRating > 0 && (
-                  <span className="text-gold font-bold text-sm">★ {hero.communityRating.toFixed(1)}</span>
-                )}
-              </div>
+              {/* Match badge */}
+              {hero.communityRating > 0 && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-wider" style={{ background: 'var(--gold)', color: 'var(--deep-black)' }}>
+                    ★ Match {Math.round(hero.communityRating * 10)}%
+                  </span>
+                </div>
+              )}
 
-              <h1 className="text-4xl md:text-7xl font-black mb-4 max-w-4xl tracking-tighter leading-none italic uppercase drop-shadow-2xl">
-                {hero.title}
-              </h1>
+              {/* Logo-style title */}
+              {hero.logoUrl ? (
+                <img
+                  src={hero.logoUrl}
+                  alt={hero.title}
+                  className="h-20 md:h-32 lg:h-40 object-contain object-left mb-4 drop-shadow-2xl max-w-full"
+                />
+              ) : (
+                <h1 className="text-3xl md:text-6xl lg:text-7xl font-black mb-4 tracking-tighter leading-none italic uppercase drop-shadow-2xl">
+                  {hero.title}
+                </h1>
+              )}
 
-              <p className="text-xs md:text-base text-text-secondary mb-8 max-w-2xl line-clamp-2 md:line-clamp-3 leading-relaxed drop-shadow-md">
+              <p className="text-xs md:text-sm text-text-secondary mb-6 line-clamp-2 md:line-clamp-3 leading-relaxed drop-shadow-md">
                 {hero.overview}
               </p>
 
-              <div className="flex items-center gap-4 flex-wrap">
-                <Link href={`/watch/${hero.id}`} className="btn-gold flex items-center gap-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Link href={`/watch/${hero.id}`} className="btn-gold flex items-center gap-2 text-sm md:text-base">
                   <Play className="w-5 h-5 fill-current" /> Regarder
                 </Link>
-                <Link href={`/detail/${hero.id}`} className="flex items-center gap-2 px-6 py-3 rounded-lg bg-surface-light/40 backdrop-blur-md border border-white/10 hover:bg-surface-light/60 transition-all text-sm font-bold">
-                  <Info className="w-5 h-5" /> Infos
+                <Link href={`/detail/${hero.id}`} className="flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all text-sm font-bold">
+                  + Watchlist
                 </Link>
               </div>
+
+              {/* Hero dots indicator */}
+              {heroPool.length > 1 && (
+                <div className="flex items-center gap-1.5 mt-6">
+                  {heroPool.slice(0, 6).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setHeroIdx(i)}
+                      className="transition-all duration-300"
+                      style={{
+                        width: i === heroIdx ? '24px' : '8px',
+                        height: '4px',
+                        borderRadius: '2px',
+                        background: i === heroIdx ? 'var(--gold)' : 'rgba(255,255,255,0.3)',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
+
+          {/* À suivre — bottom right */}
+          {heroPool.length > 1 && (
+            <div className="absolute bottom-8 right-6 md:bottom-14 md:right-12 z-10 hidden md:flex items-end gap-3">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2 mr-2">À suivre</span>
+              {heroPool
+                .filter((_, i) => i !== heroIdx)
+                .slice(0, 3)
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setHeroIdx(heroPool.indexOf(item))}
+                    className="group relative w-28 h-16 rounded-lg overflow-hidden border-2 border-transparent hover:border-gold/60 transition-all"
+                  >
+                    <Image
+                      src={item.backdropUrl}
+                      alt={item.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="120px"
+                    />
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                    <span className="absolute bottom-1 left-1.5 right-1 text-[9px] font-bold line-clamp-1 drop-shadow-lg">
+                      {item.title}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          )}
         </div>
       )}
 

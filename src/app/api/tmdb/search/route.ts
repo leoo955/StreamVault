@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/db";
 
 // 100% gratuit, aucune clé API, aucun compte
 // Utilise l'API Cinemeta (Stremio) pour chercher films/séries
@@ -48,6 +49,12 @@ async function getDetails(
 }
 
 export async function GET(request: NextRequest) {
+  // Admin only — TMDB search is used for adding media
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
   const q = request.nextUrl.searchParams.get("q");
   const type = request.nextUrl.searchParams.get("type") || "movie";
 

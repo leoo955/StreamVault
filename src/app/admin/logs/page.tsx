@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ActivityLog } from "@/lib/db";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const S = {
   background: "var(--surface)",
@@ -14,12 +15,14 @@ const S = {
 };
 
 export default function AdminLogsPage() {
+  const isAdmin = useAdminAuth();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("Tous");
 
   useEffect(() => {
+    if (!isAdmin) return;
     fetch("/api/admin/logs")
       .then(res => res.json())
       .then(data => {
@@ -27,7 +30,9 @@ export default function AdminLogsPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [isAdmin]);
+
+  if (!isAdmin) return <div className="fixed inset-0 z-[200] bg-deep-black flex items-center justify-center"><div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" /></div>;
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = 

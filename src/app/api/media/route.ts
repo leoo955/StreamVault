@@ -6,8 +6,11 @@ import {
   createMediaItem,
 } from "@/lib/db";
 
-// GET /api/media — list all media items
+// GET /api/media — list all media items (auth required)
 export async function GET(request: NextRequest) {
+  const user = await getAuthUser(request);
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const isSummary = searchParams.get("summary") === "true";
   const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined;
@@ -16,7 +19,13 @@ export async function GET(request: NextRequest) {
     ? await getMediaItemsOptimized(limit) 
     : await getMediaItems();
 
-  return NextResponse.json({ items });
+  // 14KB rule: truncate overviews in list view for faster initial load
+  const trimmedItems = items.map((item: any) => ({
+    ...item,
+    overview: item.overview?.substring(0, 200) || "",
+  }));
+
+  return NextResponse.json({ items: trimmedItems });
 }
 
 // POST /api/media — create a new media item (admin only)

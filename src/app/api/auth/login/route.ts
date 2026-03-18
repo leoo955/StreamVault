@@ -51,11 +51,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Login crash:", error);
     return NextResponse.json(
-      { 
-        error: "Erreur de connexion", 
-        details: error.message || "Unknown error",
-        stack: process.env.NODE_ENV === "development" ? error.stack : undefined 
-      }, 
+      { error: "Erreur de connexion" }, 
       { status: 500 }
     );
   }

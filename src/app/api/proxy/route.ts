@@ -1,10 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
+  // Auth required — prevent anonymous SSRF attacks
+  const user = await getAuthUser(req);
+  if (!user) return new NextResponse("Unauthorized", { status: 401 });
+
   const targetUrl = req.nextUrl.searchParams.get("url");
 
   if (!targetUrl) {
     return new NextResponse("Missing URL parameters", { status: 400 });
+  }
+
+  // Block requests to internal/private networks (SSRF protection)
+  try {
+    const parsed = new URL(targetUrl);
+    const hostname = parsed.hostname.toLowerCase();
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("172.") ||
+      hostname === "0.0.0.0" ||
+      hostname.endsWith(".local")
+    ) {
+      return new NextResponse("Blocked: internal network", { status: 403 });
+    }
+  } catch {
+    return new NextResponse("Invalid URL", { status: 400 });
   }
 
   try {

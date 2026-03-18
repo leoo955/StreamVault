@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const GENRE_OPTIONS = [
   "Action", "Aventure", "Comédie", "Crime", "Documentaire", "Drame",
@@ -33,6 +34,7 @@ interface Season {
 }
 
 export default function EditMediaPage({ params }: { params: Promise<{ id: string }> }) {
+  const isAdmin = useAdminAuth();
   const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -93,6 +95,7 @@ export default function EditMediaPage({ params }: { params: Promise<{ id: string
   const [existingSagas, setExistingSagas] = useState<string[]>([]);
 
   useEffect(() => {
+    if (!isAdmin) return;
     fetch(`/api/media/${id}`)
       .then((r) => r.json())
       .then((d) => {
@@ -127,7 +130,7 @@ export default function EditMediaPage({ params }: { params: Promise<{ id: string
         setExistingSagas(sagas);
       })
       .catch(() => {});
-  }, [id]);
+  }, [id, isAdmin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,7 +223,7 @@ export default function EditMediaPage({ params }: { params: Promise<{ id: string
 
   const S = { background: "var(--surface)", border: "1px solid var(--surface-light)", color: "var(--text-primary)" };
 
-  if (loading) return (
+  if (!isAdmin || loading) return (
     <div className="min-h-screen px-8 pt-8 max-w-3xl">
       {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-12 rounded-xl mb-4" />)}
     </div>

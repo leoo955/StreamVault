@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
+  // Admin only — anime search is used for adding media
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
   const q = request.nextUrl.searchParams.get("q");
 
   if (!q || q.length < 2) {

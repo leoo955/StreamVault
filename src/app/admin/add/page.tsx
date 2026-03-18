@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NormalizedPerson } from "@/lib/db";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const GENRE_OPTIONS = [
   "Action", "Aventure", "Comédie", "Crime", "Documentaire", "Drame",
@@ -83,6 +84,7 @@ interface TmdbResult {
 }
 
 export default function AddMediaPage() {
+  const isAdmin = useAdminAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -426,6 +428,8 @@ export default function AddMediaPage() {
     border: "1px solid var(--surface-light)",
     color: "var(--text-primary)",
   };
+
+  if (!isAdmin) return <div className="fixed inset-0 z-[200] bg-deep-black flex items-center justify-center"><div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" /></div>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen px-8 pt-8 pb-20 max-w-3xl">

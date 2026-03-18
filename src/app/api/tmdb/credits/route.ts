@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/db";
 
 // Using Cinemeta (Stremio) for free metadata
 const CINEMETA = "https://v3-cinemeta.strem.io";
 
 export async function GET(request: NextRequest) {
+  const user = await getAuthUser(request);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+  }
+
   const tmdbId = request.nextUrl.searchParams.get("tmdbId"); // Actually IMDB ID or Stremio ID
   const type = request.nextUrl.searchParams.get("type") || "movie";
 

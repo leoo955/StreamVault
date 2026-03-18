@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+
 interface MediaItem {
   id: string;
   title: string;
@@ -35,6 +37,7 @@ interface MediaItem {
 }
 
 export default function AdminDashboard() {
+  const isAdmin = useAdminAuth();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -51,8 +54,8 @@ export default function AdminDashboard() {
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchItems();
-  }, []);
+    if (isAdmin) fetchItems();
+  }, [isAdmin]);
 
   const fetchItems = async () => {
     try {
@@ -74,6 +77,14 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="fixed inset-0 z-[200] bg-deep-black flex flex-col items-center justify-center">
+        <div className="w-8 h-8 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const handleDelete = async (id: string | string[]) => {
     const ids = Array.isArray(id) ? id : [id];
@@ -215,12 +226,41 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Header Mobile/Compact */}
-          <div className="xl:hidden flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold">Admin</h1>
-            <Link href="/admin/add">
-              <button className="btn-gold p-2.5 rounded-xl"><Plus className="w-5 h-5" /></button>
-            </Link>
+          {/* Header Mobile/Compact + Admin Nav */}
+          <div className="xl:hidden mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold">Admin</h1>
+              <Link href="/admin/add">
+                <button className="btn-gold p-2.5 rounded-xl"><Plus className="w-5 h-5" /></button>
+              </Link>
+            </div>
+            {/* Mobile Admin Navigation Tabs */}
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+              {[
+                { name: "Dashboard", icon: BarChart3, href: "/admin" },
+                { name: "Sagas", icon: FolderOpen, href: "/admin/sagas" },
+                { name: "Utilisateurs", icon: Users, href: "/admin/users" },
+                { name: "Invitations", icon: Ticket, href: "/admin/invitations" },
+                { name: "Logs", icon: Activity, href: "/admin/logs" },
+                { name: "Analytics", icon: BarChart3, href: "/admin/analytics" },
+              ].map((item) => {
+                const isActive = typeof window !== "undefined" && window.location.pathname === item.href;
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <div
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                        isActive
+                          ? "bg-gold text-deep-black shadow-lg shadow-gold/10"
+                          : "bg-surface text-text-secondary border border-surface-light hover:bg-surface-light"
+                      }`}
+                    >
+                      <item.icon className="w-3.5 h-3.5" />
+                      {item.name}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
           {/* Stats Cards */}

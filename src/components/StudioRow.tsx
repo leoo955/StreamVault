@@ -9,31 +9,37 @@ const STUDIOS = [
     name: "Marvel",
     logoUrl: "/studios/marvel.svg",
     glowColor: "#E62429",
+    background: "linear-gradient(135deg, #E62429 0%, #B3191E 100%)",
   },
   {
     name: "DC",
     logoUrl: "/studios/dc.svg",
     glowColor: "#0476F2",
+    background: "linear-gradient(135deg, #0476F2 0%, #004694 100%)",
   },
   {
     name: "Netflix",
     logoUrl: "/studios/netflix.svg",
     glowColor: "#E50914",
+    background: "linear-gradient(135deg, #E50914 0%, #000000 100%)",
   },
   {
     name: "Prime Video",
     logoUrl: "/studios/prime.png",
     glowColor: "#00A8E1",
+    background: "linear-gradient(135deg, #00A8E1 0%, #003049 100%)",
   },
   {
     name: "Star Wars",
     logoUrl: "/studios/starwars.svg",
     glowColor: "#FFE81F",
+    background: "linear-gradient(135deg, #111111 0%, #333333 100%)",
   },
   {
     name: "Disney+",
     logoUrl: "/studios/disney.svg",
     glowColor: "#0063E5",
+    background: "linear-gradient(135deg, #0063E5 0%, #001242 100%)",
   },
 ];
 

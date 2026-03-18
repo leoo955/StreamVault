@@ -625,7 +625,7 @@ function parseVTTTime(timeStr: string): number {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 30 }}
             onClick={(e) => { e.stopPropagation(); skip(80); setShowSkipIntro(false); }}
-            className="absolute bottom-32 right-6 z-[55] flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:scale-105"
+            className="absolute bottom-32 right-6 z-[55] flex items-center gap-3 px-6 py-3.5 rounded-xl text-base font-bold transition-all hover:scale-105"
             style={{
               background: "rgba(255,255,255,0.15)",
               backdropFilter: "blur(12px)",
@@ -633,7 +633,7 @@ function parseVTTTime(timeStr: string): number {
               color: "white",
             }}
           >
-            <SkipForward className="w-4 h-4" />
+            <SkipForward className="w-5 h-5" />
             Passer l&apos;intro
           </motion.button>
         )}
@@ -660,26 +660,26 @@ function parseVTTTime(timeStr: string): number {
             }}
           >
             {/* Center controls (Mobile & Desktop) */}
-            <div className="absolute inset-0 flex items-center justify-center gap-6 sm:gap-12 md:gap-16 pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center gap-8 sm:gap-14 md:gap-16 pointer-events-none">
               <button
                 onClick={(e) => { e.stopPropagation(); skip(-10); handleMouseMove(); }}
-                className="pointer-events-auto p-3 sm:p-4 rounded-full bg-black/50 hover:bg-gold/40 text-white hover:text-gold transition-all backdrop-blur-md"
+                className="pointer-events-auto p-5 sm:p-5 rounded-full bg-black/50 hover:bg-gold/40 text-white hover:text-gold transition-all backdrop-blur-md"
               >
-                <SkipBack className="w-8 h-8 md:w-10 md:h-10" />
+                <SkipBack className="w-10 h-10 md:w-10 md:h-10" />
               </button>
 
               <button
                 onClick={(e) => { e.stopPropagation(); togglePlay(); handleMouseMove(); }}
-                className="pointer-events-auto p-4 sm:p-6 rounded-full bg-black/50 hover:bg-gold/40 text-white hover:text-gold transition-all backdrop-blur-md"
+                className="pointer-events-auto p-7 sm:p-7 rounded-full bg-black/50 hover:bg-gold/40 text-white hover:text-gold transition-all backdrop-blur-md"
               >
-                {isPlaying ? <Pause className="w-10 h-10 md:w-12 md:h-12" /> : <Play className="w-10 h-10 md:w-12 md:h-12 ml-1" fill="currentColor" />}
+                {isPlaying ? <Pause className="w-14 h-14 md:w-14 md:h-14" /> : <Play className="w-14 h-14 md:w-14 md:h-14 ml-1" fill="currentColor" />}
               </button>
 
               <button
                 onClick={(e) => { e.stopPropagation(); skip(10); handleMouseMove(); }}
-                className="pointer-events-auto p-3 sm:p-4 rounded-full bg-black/50 hover:bg-gold/40 text-white hover:text-gold transition-all backdrop-blur-md"
+                className="pointer-events-auto p-5 sm:p-5 rounded-full bg-black/50 hover:bg-gold/40 text-white hover:text-gold transition-all backdrop-blur-md"
               >
-                <SkipForward className="w-8 h-8 md:w-10 md:h-10" />
+                <SkipForward className="w-10 h-10 md:w-10 md:h-10" />
               </button>
             </div>
 
@@ -692,7 +692,7 @@ function parseVTTTime(timeStr: string): number {
                 onClick={(e) => e.stopPropagation()}
                 className="pointer-events-auto hover:text-gold transition-colors p-2 -ml-2 rounded-full"
               >
-                <ArrowLeft className="w-6 h-6 sm:w-8 sm:h-8 drop-shadow-lg" />
+                <ArrowLeft className="w-8 h-8 sm:w-9 sm:h-9 drop-shadow-lg" />
               </Link>
               <h2 className="text-base sm:text-lg md:text-xl font-semibold truncate flex-1 text-center mt-1 drop-shadow-md text-white">{title}</h2>
 
@@ -702,10 +702,10 @@ function parseVTTTime(timeStr: string): number {
                   {prevEpisode && (
                     <button
                       onClick={(e) => { e.stopPropagation(); prevEpisode.onPlay(); }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-black/40 hover:bg-white/10 transition-all backdrop-blur-md"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-black/40 hover:bg-white/10 transition-all backdrop-blur-md"
                       style={{ border: "1px solid rgba(255,255,255,0.15)" }}
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-5 h-5" />
                       <span className="hidden md:inline">Précédent</span>
                     </button>
                   )}
@@ -716,7 +716,7 @@ function parseVTTTime(timeStr: string): number {
                       style={{ border: "1px solid rgba(255,255,255,0.15)" }}
                     >
                       <span className="hidden md:inline">Suivant</span>
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-5 h-5" />
                     </button>
                   )}
                 </div>
@@ -737,7 +737,7 @@ function parseVTTTime(timeStr: string): number {
                    seek(percent * duration);
                  }}
               >
-                <div className="w-full h-1.5 sm:h-2 bg-white/20 rounded-full overflow-hidden">
+                <div className="w-full h-2 sm:h-2.5 bg-white/20 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-gold transition-all duration-100 ease-linear"
                     style={{ width: `${progressPercent}%` }}
@@ -745,7 +745,7 @@ function parseVTTTime(timeStr: string): number {
                 </div>
                 {/* Thumb */}
                 <div 
-                  className="absolute h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full shadow transition-transform opacity-0 group-hover/progress:opacity-100 scale-0 group-hover/progress:scale-100"
+                  className="absolute h-4 w-4 sm:h-5 sm:w-5 bg-white rounded-full shadow transition-transform opacity-0 group-hover/progress:opacity-100 scale-0 group-hover/progress:scale-100"
                   style={{ left: `calc(${progressPercent}% - 6px)` }}
                 />
               </div>
@@ -758,18 +758,18 @@ function parseVTTTime(timeStr: string): number {
                     onClick={(e) => { e.stopPropagation(); skip(-10); handleMouseMove(); }}
                     className="hover:text-gold transition-colors hidden md:block"
                   >
-                    <SkipBack className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <SkipBack className="w-6 h-6 sm:w-7 sm:h-7" />
                   </button>
 
                   {/* Play/Pause (hidden on mobile since we have center buttons) */}
                   <button
                     onClick={(e) => { e.stopPropagation(); togglePlay(); handleMouseMove(); }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center hover:bg-gold/20 transition-all hidden md:flex"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center hover:bg-gold/20 transition-all hidden md:flex"
                   >
                     {isPlaying ? (
-                      <Pause className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <Pause className="w-6 h-6 sm:w-7 sm:h-7" />
                     ) : (
-                      <Play className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5" fill="currentColor" />
+                      <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-0.5" fill="currentColor" />
                     )}
                   </button>
 
@@ -778,7 +778,7 @@ function parseVTTTime(timeStr: string): number {
                     onClick={(e) => { e.stopPropagation(); skip(10); handleMouseMove(); }}
                     className="hover:text-gold transition-colors hidden md:block"
                   >
-                    <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <SkipForward className="w-6 h-6 sm:w-7 sm:h-7" />
                   </button>
 
                   {/* Volume */}
@@ -787,9 +787,9 @@ function parseVTTTime(timeStr: string): number {
                     className="hover:text-gold transition-colors"
                   >
                     {isMuted || volume === 0 ? (
-                      <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <VolumeX className="w-7 h-7 sm:w-7 sm:h-7" />
                     ) : (
-                      <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <Volume2 className="w-7 h-7 sm:w-7 sm:h-7" />
                     )}
                   </button>
 
@@ -805,11 +805,11 @@ function parseVTTTime(timeStr: string): number {
                   {nextEpisode && (
                     <button
                       onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }}
-                      className="group/next flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-gold/20 text-white hover:text-gold transition-all border border-white/10 hover:border-gold/30 text-xs sm:text-sm font-bold"
+                      className="group/next flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-gold/20 text-white hover:text-gold transition-all border border-white/10 hover:border-gold/30 text-sm font-bold"
                       title="Épisode suivant (N)"
                     >
                       <span>Suivant</span>
-                      <SkipForward className="w-5 h-5 sm:w-6 sm:h-6 group-hover/next:translate-x-0.5 transition-transform" />
+                      <SkipForward className="w-6 h-6 sm:w-7 sm:h-7 group-hover/next:translate-x-0.5 transition-transform" />
                     </button>
                   )}
 
@@ -874,7 +874,7 @@ function parseVTTTime(timeStr: string): number {
                         className={`hover:text-gold transition-colors relative ${activeSub !== null ? "text-gold" : ""}`}
                         title="Sous-titres"
                       >
-                        <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <MessageSquare className="w-7 h-7 sm:w-7 sm:h-7" />
                         {activeSub !== null && (
                           <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-gold" />
                         )}
@@ -911,7 +911,7 @@ function parseVTTTime(timeStr: string): number {
                       }`}
                       title="Vitesse de lecture (S)"
                     >
-                      {playbackSpeed === 1 ? <Gauge className="w-5 h-5 sm:w-6 sm:h-6" /> : `${playbackSpeed}x`}
+                      {playbackSpeed === 1 ? <Gauge className="w-7 h-7 sm:w-7 sm:h-7" /> : `${playbackSpeed}x`}
                     </button>
                   </div>
 
@@ -921,9 +921,9 @@ function parseVTTTime(timeStr: string): number {
                     className="hover:text-gold transition-colors"
                   >
                     {isFullscreen ? (
-                      <Minimize className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <Minimize className="w-7 h-7 sm:w-7 sm:h-7" />
                     ) : (
-                      <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <Maximize className="w-7 h-7 sm:w-7 sm:h-7" />
                     )}
                   </button>
                 </div>
