@@ -1,5 +1,3 @@
-// Token-bucket rate limiter per IP for API routes
-
 interface TokenBucket {
   tokens: number;
   lastRefill: number;
@@ -8,9 +6,9 @@ interface TokenBucket {
 const buckets = new Map<string, TokenBucket>();
 
 const DEFAULTS = {
-  maxTokens: 30,     // max requests per window
-  refillRate: 30,    // tokens restored per second
-  windowMs: 1000,    // refill interval in ms
+  maxTokens: 30,
+  refillRate: 30,
+  windowMs: 1000,
 };
 
 export function rateLimit(
@@ -45,7 +43,6 @@ export function rateLimit(
   return { allowed: false, remaining: 0 };
 }
 
-// Stricter limit for transcoding-heavy endpoints
 export function rateLimitStream(ip: string) {
   return rateLimit(ip, { maxTokens: 5, refillRate: 2 });
 }

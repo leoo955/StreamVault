@@ -57,7 +57,7 @@ export default function MediaCard({ item, index = 0 }: MediaCardProps) {
       videoRef.current.currentTime = 60; // start at 1 min to skip intros
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {}); // ignore autoplay errors
+        playPromise.catch(() => {});
       }
     }
   }, [showPreview, item.streamUrl]);

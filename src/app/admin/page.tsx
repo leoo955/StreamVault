@@ -20,6 +20,7 @@ import {
   Lock as LockIcon,
   User,
   Check,
+  Megaphone,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,7 +44,6 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   
-  // Phase 13 features
   const [healthData, setHealthData] = useState<{ stats: any, issues: Record<string, string[]> }>({ stats: {}, issues: {} });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -109,7 +109,6 @@ export default function AdminDashboard() {
     setIsResetting(true);
     setResetSuccess(null);
     try {
-      // Find user by username first to get ID
       const uRes = await fetch(`/api/users?search=${resetUsername}`);
       const uData = await uRes.json();
       const user = (uData.users || []).find((u: any) => u.username.toLowerCase() === resetUsername.toLowerCase());
@@ -158,7 +157,6 @@ export default function AdminDashboard() {
       transition={{ duration: 0.5 }}
       className="min-h-screen px-8 pt-8 pb-20"
     >
-      {/* Selection mode bar */}
       <AnimatePresence>
         {isSelectionMode && selectedIds.length > 0 && (
           <motion.div
@@ -189,7 +187,6 @@ export default function AdminDashboard() {
       </AnimatePresence>
 
       <div className="flex gap-8">
-        {/* Pro Navigation Sidebar */}
         <div className="w-64 shrink-0 hidden xl:block">
           <div className="sticky top-8 space-y-1">
             <h2 className="px-4 text-[10px] uppercase tracking-[0.2em] font-black text-text-muted mb-4">Administration</h2>
@@ -200,6 +197,7 @@ export default function AdminDashboard() {
               { name: "Utilisateurs", icon: Users, href: "/admin/users" },
               { name: "Invitation", icon: Ticket, href: "/admin/invitations" },
               { name: "Logs", icon: Activity, href: "/admin/logs" },
+              { name: "Annonces", icon: Megaphone, href: "/admin/announcements", color: "var(--gold)" },
               { name: "Analytics", icon: BarChart3, href: "/admin/analytics", color: "var(--gold)" },
             ].map((item, idx) => (
               <Link key={idx} href={item.href}>
@@ -226,7 +224,6 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Header Mobile/Compact + Admin Nav */}
           <div className="xl:hidden mb-6">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-2xl font-bold">Admin</h1>
@@ -242,6 +239,7 @@ export default function AdminDashboard() {
                 { name: "Utilisateurs", icon: Users, href: "/admin/users" },
                 { name: "Invitations", icon: Ticket, href: "/admin/invitations" },
                 { name: "Logs", icon: Activity, href: "/admin/logs" },
+                { name: "Annonces", icon: Megaphone, href: "/admin/announcements" },
                 { name: "Analytics", icon: BarChart3, href: "/admin/analytics" },
               ].map((item) => {
                 const isActive = typeof window !== "undefined" && window.location.pathname === item.href;

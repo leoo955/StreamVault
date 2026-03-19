@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Shield, Globe, Play, Lock, LogOut, Check } from "lucide-react";
+import { User, Shield, Globe, Play, Lock, LogOut, Check, MonitorSmartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface UserData {
@@ -25,6 +25,51 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [pairingCode, setPairingCode] = useState("");
+  const [codeExpiresAt, setCodeExpiresAt] = useState<Date | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState("");
+
+  const fetchPairingCode = async () => {
+    try {
+      const res = await fetch("/api/user/pairing");
+      if (res.ok) {
+        const data = await res.json();
+        setPairingCode(data.code);
+        setCodeExpiresAt(new Date(data.expiresAt));
+      }
+    } catch {}
+  };
+
+  const generateNewPairingCode = async () => {
+    try {
+      setPairingCode("...");
+      const res = await fetch("/api/user/pairing", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setPairingCode(data.code);
+        setCodeExpiresAt(new Date(data.expiresAt));
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (!codeExpiresAt) return;
+    const interval = setInterval(() => {
+      const now = new Date();
+      const diff = codeExpiresAt.getTime() - now.getTime();
+      if (diff <= 0) {
+        setTimeRemaining("Expiré");
+        if (pairingCode && pairingCode !== "...") setPairingCode(""); 
+        clearInterval(interval);
+      } else {
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        setTimeRemaining(`${m}:${s.toString().padStart(2, "0")}`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [codeExpiresAt, pairingCode]);
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -33,6 +78,7 @@ export default function SettingsPage() {
           setUser(d.user);
           setAutoplay(d.user.preferences?.autoplay ?? true);
           setLanguage(d.user.preferences?.language ?? "fr");
+          fetchPairingCode();
         }
       })
       .finally(() => setLoading(false));
@@ -159,6 +205,29 @@ export default function SettingsPage() {
 
         <button onClick={savePreferences} disabled={saving} className="btn-gold mt-5 text-sm flex items-center gap-2 disabled:opacity-50">
           <Check className="w-4 h-4" />{saving ? "..." : "Sauvegarder"}
+        </button>
+      </section>
+
+      {/* Device Pairing */}
+      <section className="glass-card p-6 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <MonitorSmartphone className="w-5 h-5 text-gold" />
+            <h2 className="text-lg font-semibold">Couplage d'appareil</h2>
+          </div>
+        </div>
+        
+        <div className="text-center bg-deep-black/40 rounded-xl p-6 border border-surface-light mb-4 shadow-inner">
+          <p className="text-text-muted text-sm mb-3">Entrez ce code sur votre nouvel appareil (ex: TV)</p>
+          <div className="text-4xl md:text-5xl font-mono font-black text-gold tracking-[0.2em] mb-3 drop-shadow-md">
+            {pairingCode && pairingCode !== "..." ? `${pairingCode.slice(0, 3)} ${pairingCode.slice(3)}` : "--- ---"}
+          </div>
+          <p className="text-xs text-text-secondary">
+            Expire dans : <span className="font-mono text-white ml-1">{timeRemaining || "--:--"}</span>
+          </p>
+        </div>
+        <button onClick={generateNewPairingCode} className="w-full py-3 rounded-xl border border-gold/30 text-gold hover:bg-gold/10 transition-colors text-sm font-bold">
+          Générer un nouveau code
         </button>
       </section>
 

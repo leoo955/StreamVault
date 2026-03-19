@@ -14,7 +14,6 @@ import { useI18n } from "@/lib/i18n";
 import { MediaItemSummary } from "@/lib/db";
 import { useInView } from "react-intersection-observer";
 
-// Lazy load components that are below the fold or complex
 const SagaRow = dynamic(() => import("@/components/SagaRow"), {
   ssr: false
 });
@@ -63,7 +62,6 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // 1. URGENT SEED FETCH (Just for Hero and first row)
     const urgentFetch = fetch("/api/media?summary=true&limit=12").then(r => r.json());
     const progressFetch = fetch("/api/progress").then(r => r.json());
 

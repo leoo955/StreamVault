@@ -1,7 +1,6 @@
 import { SignJWT, jwtVerify, JWTPayload } from "jose";
 import { cookies } from "next/headers";
 
-// Secret key for JWT signing — use env var in production
 const getSecret = () => {
   const secret = process.env.JWT_SECRET || "streamvault-secret-key-change-in-production-2024";
   return new TextEncoder().encode(secret);
@@ -20,7 +19,7 @@ export async function createJWT(payload: { userId: string; username: string; rol
   const token = await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("4d") // 4 days
+    .setExpirationTime("4d")
     .sign(getSecret());
   return token;
 }
@@ -41,8 +40,7 @@ export async function verifyJWT(token: string): Promise<JWTUserPayload | null> {
  * Set the JWT as a secure, httpOnly, encrypted cookie
  */
 export function setAuthCookie(response: Response, token: string): void {
-  // We add the cookie header manually for maximum control
-  const maxAge = 4 * 24 * 60 * 60; // 4 days in seconds
+  const maxAge = 4 * 24 * 60 * 60; 
   const isProduction = process.env.NODE_ENV === "production";
 
   const cookieValue = [

@@ -79,7 +79,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* ===== MOBILE: Top Bar ===== */}
       <header
         className="md:hidden fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-4 transition-all"
         style={{
@@ -107,7 +106,6 @@ export default function Sidebar() {
           paddingBottom: "8px",
         }}
       >
-        {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           <img src="/icon-192.png" alt="StreamVault Logo" className="w-8 h-8 rounded-full object-contain overflow-hidden" />
           <span className="font-bold text-base gold-text tracking-tight">StreamVault</span>
@@ -142,7 +140,6 @@ export default function Sidebar() {
             );
           })}
 
-          {/* Admin link */}
           {user?.role === "admin" && (
             <Link href="/admin">
               <div
@@ -162,7 +159,6 @@ export default function Sidebar() {
 
         {/* Right: Search + Notifications + Account */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Search — always links to dedicated search page */}
           <Link href="/search" className="p-2.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text-primary transition-colors">
             <Search className="w-5 h-5" />
           </Link>

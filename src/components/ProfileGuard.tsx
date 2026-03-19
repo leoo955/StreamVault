@@ -15,7 +15,7 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     // Public routes — no auth needed
-    if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
+    if (pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/pair")) {
       setReady(true);
       return;
     }

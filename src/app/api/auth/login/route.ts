@@ -3,7 +3,6 @@ import { verifyPassword, toPublicUser } from "@/lib/db";
 import { createJWT } from "@/lib/jwt";
 import { logActivity } from "@/lib/logger";
 
-// POST /api/auth/login
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
@@ -24,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create JWT token (4 days)
     const token = await createJWT({
       userId: user.id,
       username: user.username,
@@ -38,12 +36,11 @@ export async function POST(request: NextRequest) {
       message: "Connexion réussie",
     });
 
-    // Set secure httpOnly cookie with JWT
     response.cookies.set("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 4 * 24 * 60 * 60, // 4 days
+      maxAge: 4 * 24 * 60 * 60,
       path: "/",
     });
 

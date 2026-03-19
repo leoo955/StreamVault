@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Film, Eye, EyeOff } from "lucide-react";
+import { Film, Eye, EyeOff, MonitorSmartphone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { clearAuthCache } from "@/components/ProfileGuard";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function LoginPage() {
         return;
       }
 
+      clearAuthCache();
       router.push("/");
       router.refresh();
     } catch {
@@ -150,6 +152,20 @@ export default function LoginPage() {
               Créer un compte
             </Link>
           </p>
+
+          <div className="relative mt-8 mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-surface-light"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase tracking-wider">
+              <span className="px-3 bg-deep-black text-text-muted">Nouvel Appareil</span>
+            </div>
+          </div>
+
+          <Link href="/pair" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-surface-light hover:border-gold/30 hover:bg-gold/5 transition-all text-sm font-bold text-text-secondary hover:text-text-primary shadow-sm hover:shadow-md">
+            <MonitorSmartphone className="w-5 h-5 text-gold" />
+            Utiliser un code de couplage
+          </Link>
         </div>
       </motion.div>
     </div>
