@@ -43,7 +43,7 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // poll every 30s
+    const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -79,87 +79,117 @@ export default function NotificationBell() {
     <div className="relative" ref={panelRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-full hover:bg-surface transition-colors"
+        className="relative p-2 rounded-full hover:bg-white/5 transition-all duration-300"
         aria-label="Notifications"
       >
-        <Bell className={`w-5 h-5 ${unreadCount > 0 ? "text-gold" : "text-text-muted"}`} />
+        <Bell className={`w-5 h-5 transition-colors duration-300 ${unreadCount > 0 ? "text-gold" : "text-text-muted"}`} />
+        
         {unreadCount > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gold text-deep-black text-[9px] font-black rounded-full flex items-center justify-center"
-          >
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </motion.span>
+          <>
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute top-1.5 right-1.5 w-2 h-2 bg-gold rounded-full z-10"
+            />
+            <motion.span
+              initial={{ scale: 0.8, opacity: 0.5 }}
+              animate={{ scale: 2.5, opacity: 0 }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+              className="absolute top-1.5 right-1.5 w-2 h-2 bg-gold rounded-full"
+            />
+          </>
         )}
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 md:w-96 rounded-2xl overflow-hidden shadow-2xl z-[200]"
-            style={{ background: "var(--surface)", border: "1px solid var(--surface-light)" }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="absolute right-0 top-full mt-4 w-80 md:w-[400px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[200] glass-card-strong"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-light">
-              <h3 className="font-bold text-text-primary text-sm">Notifications</h3>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-white/[0.02]">
+              <div>
+                <h3 className="font-black text-text-primary text-sm uppercase tracking-widest">Alerte Info</h3>
+                <p className="text-[10px] text-text-muted mt-0.5 font-medium">Restez au courant du contenu</p>
+              </div>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="flex items-center gap-1 text-[10px] text-gold hover:text-gold/80 font-bold transition-colors"
+                  className="flex items-center gap-1.5 text-[10px] text-gold hover:text-gold-light font-black transition-colors uppercase tracking-wider"
                 >
                   <CheckCheck className="w-3 h-3" />
-                  Tout marquer lu
+                  Lu
                 </button>
               )}
             </div>
 
             {/* List */}
-            <div className="max-h-80 overflow-y-auto custom-scrollbar">
+            <div className="max-h-[450px] overflow-y-auto scrollbar-hide">
               {notifications.length === 0 ? (
-                <div className="py-10 text-center text-text-muted text-sm">
-                  <Bell className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  Aucune notification
+                <div className="py-20 text-center flex flex-col items-center justify-center px-10">
+                  <div className="w-16 h-16 rounded-full bg-white/[0.03] flex items-center justify-center mb-4">
+                    <Bell className="w-8 h-8 text-text-muted opacity-20" />
+                  </div>
+                  <h4 className="text-sm font-bold text-text-primary">Tout est calme ici</h4>
+                  <p className="text-xs text-text-muted mt-2 leading-relaxed">
+                    Revenez plus tard pour découvrir les nouveautés et les interactions.
+                  </p>
                 </div>
               ) : (
-                notifications.map((n) => {
-                  const content = (
-                    <div
-                      className={`flex gap-3 px-4 py-3 hover:bg-surface-light/50 transition-colors cursor-pointer border-b border-surface-light/30 last:border-0 ${!n.read ? "bg-gold/5" : ""}`}
-                      onClick={() => { if (!n.read) markRead(n.id); }}
-                    >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${n.read ? "bg-surface-light" : "bg-gold/20"}`}>
-                        {n.mediaId ? (
-                          <Tv className={`w-4 h-4 ${n.read ? "text-text-muted" : "text-gold"}`} />
-                        ) : (
-                          <Star className={`w-4 h-4 ${n.read ? "text-text-muted" : "text-gold"}`} />
-                        )}
+                <div className="divide-y divide-white/5">
+                  {notifications.map((n) => {
+                    const content = (
+                      <div
+                        className={`flex gap-4 px-5 py-4 hover:bg-white/[0.04] transition-all duration-300 cursor-pointer relative group ${!n.read ? "bg-gold/[0.03]" : ""}`}
+                        onClick={() => { if (!n.read) markRead(n.id); }}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 ${n.read ? "bg-white/[0.05]" : "bg-gold/20"}`}>
+                          {n.mediaId ? (
+                            <Film className={`w-5 h-5 ${n.read ? "text-text-muted" : "text-gold"}`} />
+                          ) : (
+                            <Star className={`w-5 h-5 ${n.read ? "text-text-muted" : "text-gold"}`} />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className={`text-xs font-black uppercase tracking-wider truncate mb-1 ${n.read ? "text-text-secondary" : "gold-text"}`}>
+                              {n.title}
+                            </p>
+                            {!n.read && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-gold shrink-0 mt-1 shadow-[0_0_10px_var(--gold)]" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-text-muted leading-relaxed line-clamp-2">
+                            {n.message}
+                          </p>
+                          <p className="text-[9px] text-text-muted/60 mt-2 font-bold uppercase tracking-tighter">
+                            {timeAgo(n.createdAt)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-xs font-semibold ${n.read ? "text-text-secondary" : "text-text-primary"}`}>{n.title}</p>
-                        <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{n.message}</p>
-                        <p className="text-[10px] text-text-muted mt-1">{timeAgo(n.createdAt)}</p>
-                      </div>
-                      {!n.read && (
-                        <div className="w-2 h-2 rounded-full bg-gold mt-1.5 shrink-0" />
-                      )}
-                    </div>
-                  );
+                    );
 
-                  return n.mediaId ? (
-                    <Link href={`/detail/${n.mediaId}`} key={n.id} onClick={() => setOpen(false)}>
-                      {content}
-                    </Link>
-                  ) : (
-                    <div key={n.id}>{content}</div>
-                  );
-                })
+                    return n.mediaId ? (
+                      <Link href={`/detail/${n.mediaId}`} key={n.id} onClick={() => setOpen(false)}>
+                        {content}
+                      </Link>
+                    ) : (
+                      <div key={n.id}>{content}</div>
+                    );
+                  })}
+                </div>
               )}
             </div>
+
+            {/* Footer */}
+            {notifications.length > 0 && (
+              <div className="px-5 py-3 bg-white/[0.01] border-t border-white/5 text-center">
+                <p className="text-[9px] text-text-muted font-bold uppercase tracking-widest">Vos 50 dernières alertes</p>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

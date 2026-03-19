@@ -6,7 +6,6 @@ import {
   createMediaItem,
 } from "@/lib/db";
 
-// GET /api/media — list all media items (auth required)
 export async function GET(request: NextRequest) {
   const user = await getAuthUser(request);
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
@@ -19,7 +18,6 @@ export async function GET(request: NextRequest) {
     ? await getMediaItemsOptimized(limit) 
     : await getMediaItems();
 
-  // 14KB rule: truncate overviews in list view for faster initial load
   const trimmedItems = items.map((item: any) => ({
     ...item,
     overview: item.overview?.substring(0, 200) || "",
@@ -28,7 +26,6 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ items: trimmedItems });
 }
 
-// POST /api/media — create a new media item (admin only)
 export async function POST(request: NextRequest) {
   const user = await getAuthUser(request);
   if (!user || user.role !== "admin") {

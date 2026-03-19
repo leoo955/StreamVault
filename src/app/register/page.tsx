@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Film, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { clearAuthCache } from "@/components/ProfileGuard";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -49,6 +50,7 @@ export default function RegisterPage() {
       });
 
       if (loginRes.ok) {
+        clearAuthCache();
         router.push("/");
         router.refresh();
       }

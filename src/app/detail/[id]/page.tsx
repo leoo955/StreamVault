@@ -63,31 +63,28 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       .then(async ([detail, all, me]) => {
         if (detail.item) {
           setItem(detail.item);
-
-          // Auto-enrich episodes from TMDB if they lack images
           const mediaItem = detail.item as MediaItem;
-          if (
-            mediaItem.type === "Series" &&
-            mediaItem.seasons &&
-            mediaItem.seasons.some((s: Season) =>
-              s.episodes.some((e: Episode) => !e.imageUrl)
-            )
-          ) {
-            // Fire-and-forget enrichment, then reload
-            fetch(`/api/media/${id}/enrich-episodes`, { method: "POST" })
-              .then((r) => r.json())
-              .then((d) => {
-                if (d.enrichedCount > 0) {
-                  // Reload item data with enriched episodes
-                  fetch(`/api/media/${id}`)
-                    .then((r) => r.json())
-                    .then((refreshed) => {
-                      if (refreshed.item) setItem(refreshed.item);
-                    });
-                }
-              })
-              .catch(() => {});
-          }
+
+            if (
+              mediaItem.type === "Series" &&
+              mediaItem.seasons &&
+              mediaItem.seasons.some((s: Season) =>
+                s.episodes.some((e: Episode) => !e.imageUrl)
+              )
+            ) {
+              fetch(`/api/media/${id}/enrich-episodes`, { method: "POST" })
+                .then((r) => r.json())
+                .then((d) => {
+                  if (d.enrichedCount > 0) {
+                    fetch(`/api/media/${id}`)
+                      .then((r) => r.json())
+                      .then((refreshed) => {
+                        if (refreshed.item) setItem(refreshed.item);
+                      });
+                  }
+                })
+                .catch(() => {});
+            }
         }
         if (me.user) setCurrentUser(me.user);
         const allItems = all.items || [];

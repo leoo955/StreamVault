@@ -213,7 +213,6 @@ function parseVTTTime(timeStr: string): number {
 
     const sub = subtitles[activeSub];
     
-    // Fetch and parse the VTT file directly
     const fetchUrl = `/api/subtitles?download=${encodeURIComponent(sub.url)}`;
     
     fetch(fetchUrl)
@@ -259,7 +258,6 @@ function parseVTTTime(timeStr: string): number {
 
     const handleTimeUpdate = () => {
        const time = video.currentTime - subtitleDelay;
-       // Find active cue
        const activeCue = parsedCues.find(cue => time >= cue.start && time <= cue.end);
        if (activeCue) {
            setCurrentSubtitle(activeCue.text);
@@ -281,14 +279,12 @@ function parseVTTTime(timeStr: string): number {
     const onPause = () => setIsPlaying(false);
       const onTimeUpdate = () => {
         setCurrentTime(video.currentTime);
-        // Show skip intro button in first 2 minutes
         if (video.currentTime > 5 && video.currentTime < 120 && !showSkipIntro) {
           setShowSkipIntro(true);
         }
         if (video.currentTime >= 120 && showSkipIntro) {
           setShowSkipIntro(false);
         }
-        // Show next episode prompt 40s before end
         if (nextEpisode && video.duration > 60 && video.duration - video.currentTime < 40 && !showNextPrompt && !showNextOverlay) {
           setShowNextPrompt(true);
         }
@@ -432,15 +428,12 @@ function parseVTTTime(timeStr: string): number {
       onClick={() => { 
         if (!showNextOverlay) {
           if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
-            // Touch device: toggle controls
             setShowControls(!showControls);
-            // Hide again after 3s
             if (!showControls && isPlaying) {
               if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
               hideTimerRef.current = setTimeout(() => setShowControls(false), 3000);
             }
           } else {
-            // Desktop: click toggles play
             togglePlay(); 
             handleMouseMove();
           }

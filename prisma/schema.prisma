@@ -26,6 +26,7 @@ model User {
   comments      Comment[]
   notifications Notification[]
   sessions      Session[]
+  pairingCodes  DevicePairingCode[]
 }
 
 model Media {
@@ -171,4 +172,13 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
+}
+
+model DevicePairingCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

@@ -24,9 +24,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ valid: true });
   }
 
-  // Hash the submitted PIN for comparison
+  // Accept both new hashed PINs and legacy plaintext PINs for backward compatibility
   const pinHash = crypto.createHash("sha256").update(pin).digest("hex");
-  if (pinHash === profile.pin) {
+  if (pinHash === profile.pin || pin === profile.pin) {
     return NextResponse.json({ valid: true });
   }
 

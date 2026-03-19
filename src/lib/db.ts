@@ -92,7 +92,6 @@ export interface MediaItem {
   addedBy?: string;
 }
 
-// Keep only what is strictly necessary for MediaCard (poster, title, year, runtime, rating, type)
 export interface MediaItemSummary {
   id: string;
   title: string;
@@ -102,10 +101,10 @@ export interface MediaItemSummary {
   genres: string[];
   type: "Movie" | "Series" | "Episode" | "Anime";
   posterUrl: string;
-  backdropUrl: string; // Needed for Hero
-  streamUrl: string;   // Needed for Hover Preview
+  backdropUrl: string;
+  streamUrl: string;
   communityRating?: number;
-  saga?: string;       // Needed for SagaRow
+  saga?: string;
   dateAdded: string;
 }
 
@@ -430,14 +429,30 @@ export async function createMediaItem(
     }
   });
 
-  return mapPrismaMedia(m);
+  const createdMedia = mapPrismaMedia(m);
+
+  try {
+    const users = await prisma.user.findMany({ select: { id: true } });
+    await prisma.notification.createMany({
+      data: users.map((u) => ({
+        userId: u.id,
+        title: "Nouveauté ✨",
+        message: `${createdMedia.title} est maintenant disponible !`,
+        mediaId: createdMedia.id,
+        read: false,
+      })),
+    });
+  } catch (err) {
+    console.error("Failed to trigger notifications for new media", err);
+  }
+
+  return createdMedia;
 }
 
 export async function updateMediaItem(
   id: string,
   updates: Partial<Omit<MediaItem, "id" | "dateAdded">>
 ): Promise<MediaItem | null> {
-  // To update safely, we will delete seasons and rebuild them if the update payload contains seasons
   let updatePayload: any = {
     title: updates.title,
     type: updates.type,
@@ -520,7 +535,6 @@ export async function getMediaByType(type: "Movie" | "Series"): Promise<MediaIte
 // ===== Auth Helper for API Routes =====
 
 export async function getAuthUser(request: Request): Promise<UserPublic | null> {
-  // Use JWT-based auth
   const { getJWTUser } = await import("./jwt");
   const jwtPayload = await getJWTUser(request);
   if (!jwtPayload) return null;
@@ -568,13 +582,12 @@ export async function getWatchProgress(
       userId_mediaId_episodeId: {
         userId,
         mediaId,
-        episodeId: episodeId || "" // fallback to "" only for DB unicity if needed, but schema says null is allowed
+        episodeId: episodeId || ""
       }
     }
   });
 
   if (!p) {
-    // Try null if "" didn't work (migration period)
     if (episodeId === null) {
         const pNull = await prisma.progress.findFirst({
             where: { userId, mediaId, episodeId: null }
@@ -683,10 +696,11 @@ export async function createProfile(
   userId: string,
   name: string,
   avatarUrl: string,
-  isKids: boolean = false
+  isKids: boolean = false,
+  pin?: string
 ): Promise<Profile> {
   const p = await prisma.profile.create({
-    data: { userId, name, avatarUrl, isKids }
+    data: { userId, name, avatarUrl, isKids, pin }
   });
   return {
     ...p,
@@ -841,6 +855,22 @@ export async function addComment(comment: Omit<Comment, "id" | "createdAt">): Pr
   const c = await prisma.comment.create({
     data: comment
   });
+
+  try {
+    const admins = await prisma.user.findMany({ where: { role: "admin" }, select: { id: true } });
+    await prisma.notification.createMany({
+      data: admins.map(admin => ({
+        userId: admin.id,
+        title: "Nouveau commentaire 💬",
+        message: `${comment.username} a commenté sur un média.`,
+        mediaId: comment.mediaId,
+        read: false
+      }))
+    });
+  } catch (err) {
+    console.warn("Failed to notify admins of new comment", err);
+  }
+
   return {
     ...c,
     createdAt: c.createdAt.toISOString()
@@ -893,4 +923,66 @@ export async function markAllNotificationsRead(userId: string): Promise<void> {
     where: { userId },
     data: { read: true }
   });
+}
+
+export async function notifyAllUsers(title: string, message: string, mediaId?: string): Promise<void> {
+  try {
+    const users = await prisma.user.findMany({ select: { id: true } });
+    if (users.length === 0) return;
+
+    await prisma.notification.createMany({
+      data: users.map(u => ({
+        userId: u.id,
+        title,
+        message,
+        mediaId: mediaId || null,
+        read: false
+      }))
+    });
+  } catch (err) {
+    console.error("Failed to notify all users", err);
+    throw err;
+  }
+}
+
+// ===== Device Pairing =====
+
+export async function getPairingCode(userId: string) {
+  const code = await prisma.devicePairingCode.findFirst({
+    where: { userId, expiresAt: { gt: new Date() } }
+  });
+  return code;
+}
+
+export async function generatePairingCode(userId: string) {
+  // Delete existing codes for user
+  await prisma.devicePairingCode.deleteMany({ where: { userId } });
+
+  // Generate a random 6-digit string
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+  const newCode = await prisma.devicePairingCode.create({
+    data: { code, userId, expiresAt }
+  });
+  return newCode;
+}
+
+export async function consumePairingCode(code: string) {
+  const pairingCode = await prisma.devicePairingCode.findUnique({
+    where: { code }
+  });
+
+  if (!pairingCode) return null;
+
+  // Single-use: delete immediately upon consumption attempt
+  await prisma.devicePairingCode.delete({ where: { id: pairingCode.id } });
+
+  if (pairingCode.expiresAt < new Date()) {
+    return null; // Expired
+  }
+
+  return pairingCode.userId;
 }

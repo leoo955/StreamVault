@@ -12,7 +12,6 @@ export async function logActivity(
   try {
     const user = await getAuthUser(request);
     
-    // Get IP from headers (standard for Next.js behind proxies)
     const forward = request.headers.get("x-forwarded-for");
     const ip = forward ? forward.split(",")[0] : "127.0.0.1";
 
