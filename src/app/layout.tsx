@@ -7,6 +7,7 @@ import Providers from "@/components/Providers";
 import SplashScreen from "@/components/SplashScreen";
 import ProfileGuard from "@/components/ProfileGuard";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -48,6 +49,7 @@ export default function RootLayout({
             <Sidebar />
             <MainContent>{children}</MainContent>
           </ProfileGuard>
+          <Analytics />
         </Providers>
       </body>
     </html>
