@@ -18,6 +18,7 @@ import {
   MessageSquare,
   X,
   Gauge,
+  PictureInPicture,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -98,6 +99,19 @@ export default function VideoPlayer({
     if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
+
+  const togglePiP = useCallback(async () => {
+    try {
+      if (!videoRef.current) return;
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else if (document.pictureInPictureEnabled) {
+        await videoRef.current.requestPictureInPicture();
+      }
+    } catch (error) {
+      console.error("PiP error:", error);
+    }
+  }, []);
 
   const togglePlay = useCallback(() => {
     if (!videoRef.current) return;
@@ -411,11 +425,15 @@ function parseVTTTime(timeStr: string): number {
         case "p":
           if (prevEpisode) { e.preventDefault(); prevEpisode.onPlay(); }
           break;
+        case "i":
+          e.preventDefault();
+          togglePiP();
+          break;
       }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [togglePlay, toggleFullscreen, toggleMute, skip, nextEpisode, prevEpisode, showNextOverlay, cycleSpeed, showSkipIntro]);
+  }, [togglePlay, toggleFullscreen, toggleMute, skip, nextEpisode, prevEpisode, showNextOverlay, cycleSpeed, showSkipIntro, togglePiP]);
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -908,16 +926,26 @@ function parseVTTTime(timeStr: string): number {
                     </button>
                   </div>
 
-                  {/* Fullscreen */}
+                  {/* Fullscreen Toggle */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); toggleFullscreen(); handleMouseMove(); }}
+                    onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
                     className="hover:text-gold transition-colors"
+                    title={isFullscreen ? "Quitter le plein écran (F)" : "Plein écran (F)"}
                   >
                     {isFullscreen ? (
                       <Minimize className="w-7 h-7 sm:w-7 sm:h-7" />
                     ) : (
                       <Maximize className="w-7 h-7 sm:w-7 sm:h-7" />
                     )}
+                  </button>
+
+                  {/* Picture in Picture */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); togglePiP(); handleMouseMove(); }}
+                    className="hover:text-gold transition-colors hidden md:block"
+                    title="Picture-in-Picture (I)"
+                  >
+                    <PictureInPicture className="w-6 h-6 sm:w-7 sm:h-7" />
                   </button>
                 </div>
               </div>

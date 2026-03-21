@@ -11,6 +11,10 @@ interface InvitationCode {
   code: string;
   maxUses: number;
   usedCount: number;
+  role: "admin" | "user";
+  plan: string;
+  expiresAt: string | null;
+  note: string | null;
   createdAt: string;
 }
 
@@ -20,8 +24,15 @@ export default function InvitationsManagement() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // New Form State
   const [newCodeName, setNewCodeName] = useState("");
   const [newCodeUses, setNewCodeUses] = useState(1);
+  const [newCodeRole, setNewCodeRole] = useState<"admin" | "user">("user");
+  const [newCodePlan, setNewCodePlan] = useState("Starter");
+  const [newCodeExpiry, setNewCodeExpiry] = useState("");
+  const [newCodeNote, setNewCodeNote] = useState("");
+
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,11 +63,22 @@ export default function InvitationsManagement() {
       const res = await fetch("/api/invitations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: newCodeName.toUpperCase(), maxUses: newCodeUses }),
+        body: JSON.stringify({ 
+            code: newCodeName.toUpperCase(), 
+            maxUses: newCodeUses,
+            role: newCodeRole,
+            plan: newCodePlan,
+            expiresAt: newCodeExpiry || null,
+            note: newCodeNote || null
+        }),
       });
       if (res.ok) {
         setNewCodeName("");
         setNewCodeUses(1);
+        setNewCodeRole("user");
+        setNewCodePlan("Starter");
+        setNewCodeExpiry("");
+        setNewCodeNote("");
         setIsGenerating(false);
         fetchCodes();
       } else {
@@ -93,7 +115,8 @@ export default function InvitationsManagement() {
   };
 
   const filteredCodes = codes.filter((c) =>
-    c.code.toLowerCase().includes(search.toLowerCase())
+    c.code.toLowerCase().includes(search.toLowerCase()) || 
+    c.note?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -165,49 +188,135 @@ export default function InvitationsManagement() {
                 className="overflow-hidden mb-8"
             >
                 <div className="glass-card p-6 border border-gold/30">
-                    <h3 className="font-bold text-lg mb-4 text-gold">Créer un code d&apos;invitation</h3>
-                    <form onSubmit={generateCode} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                        <div>
-                            <label className="block text-xs text-text-muted mb-1.5 uppercase tracking-wider">
-                                Nom du code
-                            </label>
-                            <div className="relative">
+                    <h3 className="font-bold text-lg mb-6 text-gold">Créer un code d&apos;invitation personnalisé</h3>
+                    <form onSubmit={generateCode} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* Code Name */}
+                            <div>
+                                <label className="block text-[10px] text-text-muted mb-2 uppercase tracking-widest font-bold">
+                                    Nom du code
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={newCodeName}
+                                        onChange={(e) => setNewCodeName(e.target.value.toUpperCase())}
+                                        className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none uppercase font-bold tracking-wider"
+                                        style={{
+                                            background: "var(--surface)",
+                                            border: "1px solid var(--surface-light)",
+                                            color: "var(--gold)",
+                                        }}
+                                        placeholder="Ex: VIP-202X"
+                                        required
+                                    />
+                                    <button type="button" onClick={generateRandomName} className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase font-black text-text-muted hover:text-white transition-colors">Aléatoire</button>
+                                </div>
+                            </div>
+
+                            {/* Max Uses */}
+                            <div>
+                                <label className="block text-[10px] text-text-muted mb-2 uppercase tracking-widest font-bold">
+                                    Utilisations max
+                                </label>
                                 <input
-                                    type="text"
-                                    value={newCodeName}
-                                    onChange={(e) => setNewCodeName(e.target.value.toUpperCase())}
-                                    className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none uppercase font-bold tracking-wider"
+                                    type="number"
+                                    min="1"
+                                    max="1000"
+                                    value={newCodeUses}
+                                    onChange={(e) => setNewCodeUses(parseInt(e.target.value) || 1)}
+                                    className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none"
                                     style={{
-                                    background: "var(--surface)",
-                                    border: "1px solid var(--surface-light)",
-                                    color: "var(--gold)",
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--surface-light)",
+                                        color: "var(--text-primary)",
                                     }}
-                                    placeholder="Ex: VIP-202X"
                                     required
                                 />
-                                <button type="button" onClick={generateRandomName} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-muted hover:text-white">Aléatoire</button>
+                            </div>
+
+                            {/* Expiry */}
+                            <div>
+                                <label className="block text-[10px] text-text-muted mb-2 uppercase tracking-widest font-bold">
+                                    Date d&apos;expiration (Optionnel)
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    value={newCodeExpiry}
+                                    onChange={(e) => setNewCodeExpiry(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none"
+                                    style={{
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--surface-light)",
+                                        color: "var(--text-primary)",
+                                    }}
+                                />
+                            </div>
+
+                            {/* Role */}
+                            <div>
+                                <label className="block text-[10px] text-text-muted mb-2 uppercase tracking-widest font-bold">
+                                    Rôle attribué
+                                </label>
+                                <select
+                                    value={newCodeRole}
+                                    onChange={(e) => setNewCodeRole(e.target.value as any)}
+                                    className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none appearance-none"
+                                    style={{
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--surface-light)",
+                                        color: "var(--text-primary)",
+                                    }}
+                                >
+                                    <option value="user">Utilisateur Standard</option>
+                                    <option value="admin">Administrateur</option>
+                                </select>
+                            </div>
+
+                            {/* Plan */}
+                            <div>
+                                <label className="block text-[10px] text-text-muted mb-2 uppercase tracking-widest font-bold">
+                                    Abonnement (Plan)
+                                </label>
+                                <select
+                                    value={newCodePlan}
+                                    onChange={(e) => setNewCodePlan(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none appearance-none"
+                                    style={{
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--surface-light)",
+                                        color: "var(--text-primary)",
+                                    }}
+                                >
+                                    <option value="Starter">Starter (Gratuit)</option>
+                                    <option value="Premium">Premium</option>
+                                    <option value="Ultimate">Ultimate (Tout illimité)</option>
+                                </select>
+                            </div>
+
+                            {/* Note */}
+                            <div>
+                                <label className="block text-[10px] text-text-muted mb-2 uppercase tracking-widest font-bold">
+                                    Note interne (Pour vous)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newCodeNote}
+                                    onChange={(e) => setNewCodeNote(e.target.value)}
+                                    placeholder="Ex: Pour mon pote Léo"
+                                    className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none"
+                                    style={{
+                                        background: "var(--surface)",
+                                        border: "1px solid var(--surface-light)",
+                                        color: "var(--text-primary)",
+                                    }}
+                                />
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-xs text-text-muted mb-1.5 uppercase tracking-wider">
-                                Utilisations max
-                            </label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="1000"
-                                value={newCodeUses}
-                                onChange={(e) => setNewCodeUses(parseInt(e.target.value) || 1)}
-                                className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none"
-                                style={{
-                                background: "var(--surface)",
-                                border: "1px solid var(--surface-light)",
-                                color: "var(--text-primary)",
-                                }}
-                                required
-                            />
+
+                        <div className="flex justify-end pt-2">
+                             <button type="submit" className="btn-gold py-3 px-12 shadow-2xl hover:scale-105 active:scale-95 transition-all">Générer le code</button>
                         </div>
-                        <button type="submit" className="btn-gold py-3 w-full">Générer</button>
                     </form>
                 </div>
             </motion.div>
@@ -222,8 +331,8 @@ export default function InvitationsManagement() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un code..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none uppercase"
+            placeholder="Rechercher un code ou une note..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
             style={{
               background: "var(--surface)",
               border: "1px solid var(--surface-light)",
@@ -251,84 +360,113 @@ export default function InvitationsManagement() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCodes.map((c) => (
-            <motion.div
-              key={c.code}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col gap-4 p-5 rounded-xl transition-all duration-200 border relative overflow-hidden"
-              style={{ 
-                  background: "var(--surface)",
-                  borderColor: c.usedCount >= c.maxUses ? "var(--danger)" : "var(--gold-light)"
-              }}
-            >
-              {/* Background Glow */}
-              <div 
-                className="absolute -top-10 -right-10 w-24 h-24 rounded-full opacity-20 blur-xl"
-                style={{ background: c.usedCount >= c.maxUses ? "var(--danger)" : "var(--gold)" }}
-              />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCodes.map((c) => {
+              const isExpiredUsage = c.usedCount >= c.maxUses;
+              const isExpiredDate = c.expiresAt && new Date(c.expiresAt) < new Date();
+              const isInvalid = isExpiredUsage || isExpiredDate;
 
-              {/* Info */}
-              <div className="flex-1 min-w-0 z-10">
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-xl tracking-wider text-gold font-mono truncate mr-2" style={{ color: c.usedCount >= c.maxUses ? "var(--text-muted)" : "var(--gold)" }}>
-                        {c.code}
-                    </h3>
-                    {c.usedCount >= c.maxUses ? (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-danger/20 text-danger border border-danger/30">Expiré</span>
-                    ) : (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-green-500/20 text-green-400 border border-green-500/30">Valide</span>
+              return (
+                <motion.div
+                key={c.code}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col gap-4 p-6 rounded-2xl transition-all duration-200 border relative overflow-hidden group shadow-lg"
+                style={{ 
+                    background: "var(--surface)",
+                    borderColor: isInvalid ? "var(--danger)" : "var(--surface-light)"
+                }}
+                >
+                {/* Background Glow */}
+                <div 
+                    className="absolute -top-10 -right-10 w-24 h-24 rounded-full opacity-10 blur-2xl group-hover:opacity-20 transition-opacity"
+                    style={{ background: isInvalid ? "var(--danger)" : "var(--gold)" }}
+                />
+
+                {/* Info */}
+                <div className="flex-1 min-w-0 z-10">
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="min-w-0">
+                            <h3 className="font-black text-2xl tracking-tighter text-white font-mono truncate mr-2" style={{ color: isInvalid ? "var(--text-muted)" : "white" }}>
+                                {c.code}
+                            </h3>
+                            {c.note && (
+                                <p className="text-[10px] text-text-muted mt-1 italic line-clamp-1">{c.note}</p>
+                            )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                            {isInvalid ? (
+                                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-danger/20 text-danger border border-danger/30">Désactivé</span>
+                            ) : (
+                                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-green-500/20 text-green-400 border border-green-500/30">Actif</span>
+                            )}
+                            <div className="flex items-center gap-1">
+                                <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter border ${c.role === 'admin' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-white/5 text-text-muted border-white/10'}`}>
+                                    {c.role}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter border ${c.plan === 'Ultimate' ? 'bg-gold/10 text-gold border-gold/20' : c.plan === 'Premium' ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-white/5 text-text-muted border-white/10'}`}>
+                                    {c.plan}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Expiry Text */}
+                    {c.expiresAt && (
+                        <p className={`text-[10px] mb-4 flex items-center gap-1.5 ${isExpiredDate ? 'text-danger' : 'text-text-muted'}`}>
+                            <Ticket className="w-3 h-3" />
+                            Expire le : {new Date(c.expiresAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </p>
                     )}
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="mt-4">
-                    <div className="flex justify-between text-xs text-text-muted mb-1">
-                        <span>Utilisations</span>
-                        <span className="font-mono">{c.usedCount} / {c.maxUses}</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-surface-light rounded-full overflow-hidden">
-                        <div 
-                            className="h-full transition-all duration-500 ease-out"
-                            style={{ 
-                                width: `${Math.min(100, (c.usedCount / c.maxUses) * 100)}%`,
-                                background: c.usedCount >= c.maxUses ? "var(--danger)" : "var(--gold)"
-                            }}
-                        />
-                    </div>
-                </div>
 
-                <div className="mt-4 pt-4 border-t border-surface-light flex items-center justify-between">
-                  <span className="text-[10px] text-text-muted opacity-50">Créé le {new Date(c.createdAt).toLocaleDateString('fr-FR')}</span>
-                  {deleteConfirm === c.code ? (
-                  <div className="flex items-center gap-1">
+                    {/* Progress Bar */}
+                    <div className="mt-auto">
+                        <div className="flex justify-between text-[10px] text-text-muted mb-1.5 uppercase tracking-widest font-bold">
+                            <span>Utilisations</span>
+                            <span className="font-mono text-xs">{c.usedCount} / {c.maxUses}</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-surface-light rounded-full overflow-hidden">
+                            <div 
+                                className="h-full transition-all duration-700 ease-out"
+                                style={{ 
+                                    width: `${Math.min(100, (c.usedCount / c.maxUses) * 100)}%`,
+                                    background: isInvalid ? "var(--danger)" : "var(--gold)"
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-surface-light flex items-center justify-between">
+                    <span className="text-[9px] text-text-muted uppercase tracking-wider font-bold opacity-30">Créé le {new Date(c.createdAt).toLocaleDateString('fr-FR')}</span>
+                    {deleteConfirm === c.code ? (
+                    <div className="flex items-center gap-1.5">
+                        <button
+                        onClick={() => handleDelete(c.code)}
+                        className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-danger text-white transition-all shadow-lg shadow-danger/20"
+                        >
+                        Confirmer
+                        </button>
+                        <button
+                        onClick={() => setDeleteConfirm(null)}
+                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-surface-light transition-colors"
+                        >
+                        Non
+                        </button>
+                    </div>
+                    ) : (
                     <button
-                      onClick={() => handleDelete(c.code)}
-                      className="px-2 py-1 rounded text-[10px] font-medium bg-danger/20 text-danger hover:bg-danger/30 transition-colors"
+                        onClick={() => setDeleteConfirm(c.code)}
+                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-text-muted hover:text-danger hover:scale-105 transition-all"
                     >
-                      Supprimer ?
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Supprimer
                     </button>
-                    <button
-                      onClick={() => setDeleteConfirm(null)}
-                      className="px-2 py-1 rounded text-[10px] font-medium hover:bg-surface-light transition-colors"
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setDeleteConfirm(c.code)}
-                    className="flex items-center gap-1 text-[10px] text-text-muted hover:text-danger transition-colors"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Supprimer
-                  </button>
-                )}
+                    )}
+                    </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+                </motion.div>
+              );
+          })}
         </div>
       )}
     </motion.div>

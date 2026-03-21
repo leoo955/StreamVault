@@ -9,6 +9,7 @@ import { DetailSkeleton } from "@/components/Skeleton";
 import { useI18n } from "@/lib/i18n";
 import CommentsSection from "@/components/CommentsSection";
 import StarRating from "@/components/StarRating";
+import DownloadButton from "@/components/DownloadButton";
 import { useImageColors } from "@/hooks/useImageColors";
 
 interface Episode {
@@ -43,6 +44,8 @@ interface MediaItem {
   seasons?: Season[];
   saga?: string;
   dateAdded: string;
+  lastSeasonSaved?: number;
+  lastEpisodeSaved?: number;
 }
 
 export default function DetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -59,11 +62,19 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       fetch(`/api/media/${id}`).then((r) => r.json()),
       fetch("/api/media").then((r) => r.json()),
       fetch("/api/auth/me").then((r) => r.json()).catch(() => ({})),
+      fetch("/api/progress").then((r) => r.json()).catch(() => ({ progress: [] })),
     ])
-      .then(async ([detail, all, me]) => {
+      .then(async ([detail, all, me, prog]) => {
         if (detail.item) {
-          setItem(detail.item);
           const mediaItem = detail.item as MediaItem;
+          
+          const userProg = prog.progress?.find((p: any) => p.mediaId === id);
+          if (userProg) {
+            mediaItem.lastSeasonSaved = userProg.seasonNum;
+            mediaItem.lastEpisodeSaved = userProg.episodeNum;
+          }
+
+          setItem(detail.item);
 
             if (
               mediaItem.type === "Series" &&
@@ -206,14 +217,40 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
 
             {item.overview && <p className="text-text-secondary leading-relaxed mb-6 max-w-2xl">{item.overview}</p>}
 
-            {/* Play button — for movies */}
-            {item.type === "Movie" && item.streamUrl && (
-              <Link href={`/watch/${item.id}`}>
-                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="btn-gold flex items-center gap-2">
-                  <Play className="w-5 h-5" /> {t("detail.watch")}
-                </motion.button>
-              </Link>
-            )}
+            {/* Actions Row */}
+            <div className="flex items-center gap-4 mt-8 flex-wrap">
+              {/* Play button — for movies */}
+              {item.type === "Movie" && item.streamUrl && (
+                <Link href={`/watch/${item.id}`}>
+                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="btn-gold flex items-center gap-2">
+                    <Play className="w-5 h-5" /> {t("detail.watch")}
+                  </motion.button>
+                </Link>
+              )}
+
+              {/* Play button — for series */}
+              {item.type === "Series" && item.seasons && item.seasons.length > 0 && (
+                <Link href={`/watch/${item.id}?s=${item.lastSeasonSaved || 1}&e=${item.lastEpisodeSaved || 1}`}>
+                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="btn-gold flex items-center gap-2">
+                    <Play className="w-5 h-5" /> {t("detail.watch")}
+                  </motion.button>
+                </Link>
+              )}
+
+              {/* Offline Download Button — for movies */}
+              {item.type === "Movie" && item.streamUrl && (
+                <DownloadButton
+                  media={{
+                    id: item.id,
+                    title: item.title,
+                    posterUrl: item.posterUrl,
+                    streamUrl: item.streamUrl,
+                    type: item.type,
+                    downloadedAt: "",
+                  }}
+                />
+              )}
+            </div>
 
             {item.studios && item.studios.length > 0 && (
               <div className="mt-8 pt-6" style={{ borderTop: "1px solid var(--surface-light)" }}>
@@ -292,14 +329,31 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                               )}
                             </div>
                             {/* Info */}
-                            <div className="flex-1 min-w-0 py-1">
-                              <h4 className="text-sm font-semibold text-text-primary group-hover:text-gold transition-colors">
-                                {ep.title || `Épisode ${ep.number}`}
-                              </h4>
-                              {ep.overview && (
-                                <p className="text-xs text-text-muted mt-1.5 line-clamp-3 leading-relaxed">
-                                  {ep.overview}
-                                </p>
+                            <div className="flex-1 min-w-0 py-1 flex items-start justify-between gap-4">
+                              <div className="flex-1 pr-2">
+                                <h4 className="text-sm font-semibold text-text-primary group-hover:text-gold transition-colors">
+                                  {ep.title || `Épisode ${ep.number}`}
+                                </h4>
+                                {ep.overview && (
+                                  <p className="text-xs text-text-muted mt-1.5 line-clamp-3 leading-relaxed">
+                                    {ep.overview}
+                                  </p>
+                                )}
+                              </div>
+                              {ep.streamUrl && (
+                                <DownloadButton
+                                  className="shrink-0 mt-1"
+                                  media={{
+                                    id: `${item.id}-S${season.number}E${ep.number}`,
+                                    title: `${item.title} - S${season.number}E${ep.number}: ${ep.title}`,
+                                    posterUrl: epImage,
+                                    streamUrl: ep.streamUrl,
+                                    type: "Series",
+                                    seasonNum: season.number,
+                                    episodeNum: ep.number,
+                                    downloadedAt: "",
+                                  }}
+                                />
                               )}
                             </div>
                           </div>

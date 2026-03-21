@@ -87,9 +87,8 @@ export default function SagaCard({ sagaName, items }: SagaCardProps) {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="p-4 space-y-4">
-              <Link href={`/watch/${firstItem.id}`}>
+              <Link href={firstItem.type === "Series" ? `/watch/${firstItem.id}?s=${(firstItem as any).lastSeasonSaved || 1}&e=${(firstItem as any).lastEpisodeSaved || 1}` : `/watch/${firstItem.id}`}>
                 <button className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg bg-white text-black font-black text-[11px] uppercase hover:bg-white/90 transition-colors shadow-lg">
                   <Play className="w-4 h-4" fill="currentColor" />
                   Lecture

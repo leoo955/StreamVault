@@ -17,10 +17,12 @@ import {
   LogOut,
   User,
   ChevronDown,
+  Download,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 import NotificationBell from "./NotificationBell";
+import PwaInstallButton from "./PwaInstallButton";
 
 interface UserData {
   username: string;
@@ -33,6 +35,7 @@ const NAV_ITEMS = [
   { icon: Film, labelKey: "nav.movies", href: "/movies" },
   { icon: Tv, labelKey: "nav.series", href: "/series" },
   { icon: Heart, labelKey: "nav.myList", href: "/my-list" },
+  { icon: Download, labelKey: "Mes Téléchargements", href: "/downloads" },
 ];
 
 export default function Sidebar() {
@@ -91,6 +94,7 @@ export default function Sidebar() {
           <span className="font-bold text-sm gold-text tracking-tight">StreamVault</span>
         </Link>
         <div className="flex items-center gap-2">
+          <PwaInstallButton />
           <Link href="/search" className="p-2 text-text-muted hover:text-white transition-colors">
             <Search className="w-5 h-5" />
           </Link>
@@ -159,6 +163,8 @@ export default function Sidebar() {
 
         {/* Right: Search + Notifications + Account */}
         <div className="flex items-center gap-2 shrink-0">
+          <PwaInstallButton />
+          
           <Link href="/search" className="p-2.5 rounded-lg hover:bg-white/5 text-text-muted hover:text-text-primary transition-colors">
             <Search className="w-5 h-5" />
           </Link>

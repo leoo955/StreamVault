@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#C6A55C">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon-192.png" sizes="192x192">
+    <title>StreamVault — Hors Ligne</title>
+    <style>
+        :root {
+            --deep-black: #050505;
+            --surface: #111111;
+            --surface-light: #1A1A1A;
+            --gold: #C6A55C;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0A0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--deep-black);
+            color: var(--text-primary);
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .icon-container {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background-color: var(--surface-light);
+            border: 2px solid var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        .icon {
+            color: var(--gold);
+            width: 40px;
+            height: 40px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 16px 0;
+            font-weight: bold;
+        }
+        p {
+            color: var(--text-secondary);
+            max-width: 500px;
+            font-size: 1.125rem;
+            line-height: 1.6;
+            margin: 0 0 40px 0;
+            padding: 0 20px;
+        }
+        .btn {
+            background-color: var(--gold);
+            color: var(--deep-black);
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.125rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 0 30px rgba(198, 165, 92, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(198, 165, 92, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="icon-container">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+    </div>
+    <h1>Oups, connexion perdue.</h1>
+    <p>Il semblerait que vous soyez hors-ligne. Pas de panique, vos films et séries téléchargés vous attendent au chaud pour être visionnés sans internet !</p>
+
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+        <a href="/offline-player.html" class="btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m8 17 4 4 4-4"></path></svg>
+            Aller vers Mes Téléchargements
+        </a>
+        <button onclick="goOnline()" class="btn" style="background: var(--surface-light); color: var(--text-primary); border: 1px solid var(--surface-hover);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            Retourner sur le site
+        </button>
+    </div>
+
+    <script>
+        function goOnline() {
+            if (navigator.onLine) {
+                window.location.href = "/";
+            } else {
+                alert("Vous êtes toujours hors-ligne ! Connectez-vous d'abord à Internet.");
+            }
+        }
+    </script>
+</body>
+</html>

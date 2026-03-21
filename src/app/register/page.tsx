@@ -1,8 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Film, Eye, EyeOff } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Film, Eye, EyeOff, CheckCircle2, AlertCircle, Stars } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { clearAuthCache } from "@/components/ProfileGuard";
@@ -16,6 +14,38 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Invite Preview State
+  const [inviteData, setInviteData] = useState<{ role: string, plan: string } | null>(null);
+  const [isVerifyingInvite, setIsVerifyingInvite] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        if (inviteCode.length >= 3) {
+            verifyInvite();
+        } else {
+            setInviteData(null);
+        }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [inviteCode]);
+
+  const verifyInvite = async () => {
+    setIsVerifyingInvite(true);
+    try {
+        const res = await fetch(`/api/invitations/${inviteCode.toUpperCase()}`);
+        if (res.ok) {
+            const data = await res.json();
+            setInviteData({ role: data.role, plan: data.plan });
+        } else {
+            setInviteData(null);
+        }
+    } catch {
+        setInviteData(null);
+    } finally {
+        setIsVerifyingInvite(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,9 +191,14 @@ export default function RegisterPage() {
 
             {/* Invite Code */}
             <div>
-              <label className="block text-xs text-text-muted mb-1.5 uppercase tracking-wider">
-                Code d&apos;invitation
-              </label>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs text-text-muted uppercase tracking-wider">
+                    Code d&apos;invitation
+                </label>
+                {isVerifyingInvite && (
+                    <div className="w-3 h-3 border border-gold/30 border-t-gold rounded-full animate-spin" />
+                )}
+              </div>
               <input
                 type="text"
                 value={inviteCode}
@@ -171,14 +206,41 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 rounded-xl text-sm transition-all duration-200 focus:outline-none"
                 style={{
                   background: "var(--surface)",
-                  border: "1px solid var(--surface-light)",
-                  color: "var(--gold)",
+                  border: inviteData ? "1px solid var(--gold)" : "1px solid var(--surface-light)",
+                  color: inviteData ? "var(--gold)" : "var(--text-primary)",
                   fontWeight: "bold",
                   letterSpacing: "1px"
                 }}
                 placeholder="Ex: VIP-202X"
                 required
               />
+
+              <AnimatePresence>
+                {inviteData && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="p-3 rounded-xl bg-gold/5 border border-gold/20 flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-gold">
+                                <Stars className="w-4 h-4 fill-gold/20" />
+                                <span className="text-[10px] font-black uppercase tracking-widest italic animate-pulse">Invitation Spéciale</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/40 border border-white/10">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-gold animate-ping" />
+                                    <span className="text-[9px] font-bold text-white uppercase tracking-tighter">Plan {inviteData.plan}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/40 border border-white/10">
+                                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-tighter">Rôle {inviteData.role}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Error */}
