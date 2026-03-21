@@ -176,7 +176,8 @@ export async function getUserByUsername(username: string): Promise<User | undefi
 export async function createUser(
   username: string,
   password: string,
-  role: "admin" | "user" = "user"
+  role: "admin" | "user" = "user",
+  plan: string = "Starter"
 ): Promise<UserPublic> {
   const lowercaseUser = username.toLowerCase();
   const existing = await prisma.user.findFirst({ where: { username: { equals: lowercaseUser, mode: "insensitive" } }});
@@ -192,6 +193,7 @@ export async function createUser(
       passwordHash: hashed,
       salt,
       role: count === 0 ? "admin" : role,
+      plan: count === 0 ? "Ultimate" : plan,
       preferences: { language: "fr", autoplay: true }
     }
   });
@@ -743,33 +745,53 @@ export interface InvitationCode {
   code: string;
   maxUses: number;
   usedCount: number;
+  role: "admin" | "user";
+  plan: string;
+  expiresAt: string | null;
+  note: string | null;
   createdBy: string;
   createdAt: string;
 }
 
 export async function getInvitationCodes(): Promise<InvitationCode[]> {
-  const codes = await prisma.invitationCode.findMany();
+  const codes = await prisma.invitationCode.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
   return codes.map(c => ({
     ...c,
+    role: c.role as "admin" | "user",
+    expiresAt: c.expiresAt ? c.expiresAt.toISOString() : null,
     createdAt: c.createdAt.toISOString()
   }));
 }
 
 export async function createInvitationCode(
-  code: string,
-  maxUses: number,
-  createdBy: string
+  params: {
+    code: string;
+    maxUses: number;
+    createdBy: string;
+    role?: "admin" | "user";
+    plan?: string;
+    expiresAt?: Date | null;
+    note?: string | null;
+  }
 ): Promise<InvitationCode> {
-  const cleanCode = code.trim().toUpperCase();
+  const cleanCode = params.code.trim().toUpperCase();
   const c = await prisma.invitationCode.create({
     data: {
       code: cleanCode,
-      maxUses,
-      createdBy
+      maxUses: params.maxUses,
+      createdBy: params.createdBy,
+      role: params.role || "user",
+      plan: params.plan || "Starter",
+      expiresAt: params.expiresAt,
+      note: params.note || null,
     }
   });
   return {
     ...c,
+    role: c.role as "admin" | "user",
+    expiresAt: c.expiresAt ? c.expiresAt.toISOString() : null,
     createdAt: c.createdAt.toISOString()
   };
 }
@@ -783,18 +805,29 @@ export async function deleteInvitationCode(code: string): Promise<boolean> {
   }
 }
 
-export async function validateAndUseInvitationCode(code: string): Promise<boolean> {
+export async function validateAndUseInvitationCode(code: string): Promise<InvitationCode | null> {
   const cleanCode = code.trim().toUpperCase();
   const invite = await prisma.invitationCode.findUnique({ where: { code: cleanCode } });
-  if (!invite) return false;
   
-  if (invite.usedCount >= invite.maxUses) return false;
+  if (!invite) return null;
   
-  await prisma.invitationCode.update({
+  // Check usages
+  if (invite.usedCount >= invite.maxUses) return null;
+  
+  // Check expiration
+  if (invite.expiresAt && invite.expiresAt < new Date()) return null;
+  
+  const updated = await prisma.invitationCode.update({
     where: { code: cleanCode },
     data: { usedCount: { increment: 1 } }
   });
-  return true;
+
+  return {
+    ...updated,
+    role: updated.role as "admin" | "user",
+    expiresAt: updated.expiresAt ? updated.expiresAt.toISOString() : null,
+    createdAt: updated.createdAt.toISOString()
+  };
 }
 
 // ===== Activity Log Operations =====

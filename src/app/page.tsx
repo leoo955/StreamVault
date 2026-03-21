@@ -97,6 +97,8 @@ export default function HomePage() {
       isPlayed: false,
       playbackPosition: p?.position || 0,
       playbackDuration: p?.duration || 0,
+      lastSeasonSaved: p?.seasonNum,
+      lastEpisodeSaved: p?.episodeNum,
     } as any;
   }
 
@@ -231,7 +233,10 @@ export default function HomePage() {
               </p>
 
               <div className="flex items-center gap-3 flex-wrap">
-                <Link href={`/watch/${hero.id}`} className="btn-gold flex items-center gap-2 text-sm md:text-base">
+                <Link 
+                  href={hero.type === "Series" ? `/watch/${hero.id}?s=${hero.lastSeasonSaved || 1}&e=${hero.lastEpisodeSaved || 1}` : `/watch/${hero.id}`} 
+                  className="btn-gold flex items-center gap-2 text-sm md:text-base"
+                >
                   <Play className="w-5 h-5 fill-current" /> Regarder
                 </Link>
                 <Link href={`/detail/${hero.id}`} className="flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all text-sm font-bold">

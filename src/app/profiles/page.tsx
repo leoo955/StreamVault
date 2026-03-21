@@ -10,6 +10,8 @@ import {
   Crown, Sparkles, Flame
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getPlanFeatures } from "@/lib/plans";
+import { usePlan } from "@/hooks/usePlan";
 
 interface Profile {
   id: string;
@@ -63,6 +65,7 @@ export default function ProfilesPage() {
   const [pinError, setPinError] = useState(false);
   
   const router = useRouter();
+  const { plan: userPlan } = usePlan();
 
   useEffect(() => {
     fetchProfiles();
@@ -277,21 +280,37 @@ export default function ProfilesPage() {
           ))}
 
           {/* Add profile button */}
-          {profiles.length < 5 && !editing && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: profiles.length * 0.1, type: "spring" }}
-              className="cursor-pointer group flex flex-col items-center"
-              onClick={openCreateModal}
-            >
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-dashed border-text-muted/30 flex items-center justify-center transition-all duration-300 group-hover:border-gold group-hover:bg-gold/5 group-hover:scale-110">
-                <Plus className="w-12 h-12 md:w-16 md:h-16 text-text-muted group-hover:text-gold transition-colors" />
-              </div>
-              <p className="mt-5 text-lg md:text-xl font-semibold text-text-muted group-hover:text-text-secondary">
-                Ajouter un profil
-              </p>
-            </motion.div>
+          {!editing && (
+            profiles.length < (userPlan?.maxProfiles || 1) ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: profiles.length * 0.1, type: "spring" }}
+                className="cursor-pointer group flex flex-col items-center"
+                onClick={openCreateModal}
+              >
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-dashed border-text-muted/30 flex items-center justify-center transition-all duration-300 group-hover:border-gold group-hover:bg-gold/5 group-hover:scale-110">
+                  <Plus className="w-12 h-12 md:w-16 md:h-16 text-text-muted group-hover:text-gold transition-colors" />
+                </div>
+                <p className="mt-5 text-lg md:text-xl font-semibold text-text-muted group-hover:text-text-secondary">
+                  Ajouter un profil
+                </p>
+              </motion.div>
+            ) : profiles.length === 1 && userPlan?.id === "Starter" ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center max-w-[200px] text-center px-4"
+              >
+                <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                  <Lock className="w-6 h-6 text-text-muted/30" />
+                </div>
+                <p className="text-[10px] uppercase font-black tracking-widest text-gold mb-1">Plan Starter</p>
+                <p className="text-[11px] text-text-muted leading-tight">
+                  Passez au plan <span className="text-white font-bold">Premium</span> pour ajouter d'autres profils.
+                </p>
+              </motion.div>
+            ) : null
           )}
         </div>
 

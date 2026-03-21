@@ -29,15 +29,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate and consume the invitation code BEFORE creating user
-    const isValidCode = await validateAndUseInvitationCode(inviteCode);
-    if (!isValidCode) {
+    const invite = await validateAndUseInvitationCode(inviteCode);
+    if (!invite) {
       return NextResponse.json(
         { error: "Code d'invitation invalide ou expiré" },
         { status: 403 }
       );
     }
 
-    const user = await createUser(username, password);
+    const user = await createUser(username, password, invite.role, invite.plan);
 
     // Auto-login after register: create JWT
     const token = await createJWT({

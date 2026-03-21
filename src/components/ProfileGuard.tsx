@@ -66,6 +66,13 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
         }
       })
       .catch(() => {
+        // If the fetch fails entirely because we are offline, allow the app to boot
+        // so the user can access their downloaded library without being logged out.
+        if (typeof navigator !== "undefined" && !navigator.onLine) {
+          setReady(true);
+          return;
+        }
+
         authCache = null;
         router.push("/login");
       });

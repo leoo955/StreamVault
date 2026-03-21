@@ -6,7 +6,9 @@ import {
   createProfile,
   updateProfile,
   deleteProfile,
+  getUserById,
 } from "@/lib/db";
+import { getPlanFeatures } from "@/lib/plans";
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser(req);
@@ -27,9 +29,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
+  // Enforce Plan Limits
+  const fullUser = await getUserById(user.id);
+  const plan = getPlanFeatures(fullUser?.plan || "Starter");
   const existing = await getProfilesForUser(user.id);
-  if (existing.length >= 5) {
-    return NextResponse.json({ error: "Maximum 5 profiles" }, { status: 400 });
+
+  if (existing.length >= plan.maxProfiles) {
+    return NextResponse.json({ 
+      error: `Limite de profils atteinte pour votre plan ${plan.name} (${plan.maxProfiles}). Passez au plan supérieur pour en ajouter d'autres.` 
+    }, { status: 403 });
   }
 
   const hashedPin = pin ? crypto.createHash("sha256").update(pin).digest("hex") : undefined;

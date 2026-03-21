@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Shield, Globe, Play, Lock, LogOut, Check, MonitorSmartphone } from "lucide-react";
+import { User, Shield, Globe, Play, Lock, LogOut, Check, MonitorSmartphone, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getPlanFeatures } from "@/lib/plans";
 
 interface UserData {
   id: string;
   username: string;
   role: "admin" | "user";
+  plan?: string;
   preferences: { language: string; autoplay: boolean };
 }
 
@@ -170,6 +172,30 @@ export default function SettingsPage() {
               {user.role === "admin" ? "Administrateur" : "Utilisateur"}
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Subscription */}
+      <section className="glass-card p-6 mb-4 relative overflow-hidden group hover:border-gold/30 transition-all cursor-pointer" onClick={() => router.push("/settings/subscription")}>
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Crown className="w-20 h-20 text-gold rotate-12" />
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Crown className="w-5 h-5 text-gold" />
+            <h2 className="text-lg font-semibold">Abonnement</h2>
+          </div>
+          <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+            user.plan === "Ultimate" ? "bg-gold/10 text-gold border-gold/20" :
+            user.plan === "Premium" ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" :
+            "bg-white/5 text-text-muted border-white/10"
+          }`}>
+            Plan {user.plan || "Starter"}
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between text-sm">
+            <span className="text-text-muted">Gérez vos avantages et facturation</span>
+            <span className="text-gold font-bold">Détails →</span>
         </div>
       </section>
 

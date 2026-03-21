@@ -6,6 +6,7 @@ import MainContent from "@/components/MainContent";
 import Providers from "@/components/Providers";
 import SplashScreen from "@/components/SplashScreen";
 import ProfileGuard from "@/components/ProfileGuard";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -40,6 +41,7 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased`}
         style={{ background: "var(--deep-black)" }}
       >
+        <ServiceWorkerRegister />
         <SplashScreen />
         <Providers>
           <ProfileGuard>

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { code, maxUses } = await request.json();
+    const { code, maxUses, role, plan, expiresAt, note } = await request.json();
 
     if (!code || typeof code !== "string" || code.trim().length < 3) {
       return NextResponse.json({ error: "Code invalide (min 3 caractères)" }, { status: 400 });
@@ -33,7 +33,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Nombre d'utilisations invalide" }, { status: 400 });
     }
 
-    const newCode = await createInvitationCode(code, maxUses, user.id);
+    const newCode = await createInvitationCode({
+      code: code.trim(),
+      maxUses,
+      createdBy: user.id,
+      role: role || "user",
+      plan: plan || "Starter",
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      note: note || null
+    });
     return NextResponse.json({ code: newCode, message: "Code créé avec succès" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur serveur";

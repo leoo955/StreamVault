@@ -160,11 +160,15 @@ model Notification {
 }
 
 model InvitationCode {
-  code      String   @id
+  code      String    @id
   maxUses   Int
-  usedCount Int      @default(0)
+  usedCount Int       @default(0)
+  role      String    @default("user")
+  plan      String    @default("Starter")
+  expiresAt DateTime?
+  note      String?
   createdBy String // User ID of the admin who created it
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 model Session {
