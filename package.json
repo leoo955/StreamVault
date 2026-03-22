@@ -27,6 +27,7 @@
     "@movie-web/providers": "^2.4.13",
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.99.1",
+    "@vercel/analytics": "^2.0.1",
     "adm-zip": "^0.5.16",
     "framer-motion": "^12.34.5",
     "hls.js": "^1.6.15",
