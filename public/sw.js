@@ -1,4 +1,4 @@
-const CACHE_NAME = 'streamvault-offline-v7';
+const CACHE_NAME = 'streamvault-offline-v8';
 const OFFLINE_URL = '/offline.html';
 const OFFLINE_PLAYER_URL = '/offline-player.html';
 const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@latest';

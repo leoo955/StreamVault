@@ -84,28 +84,24 @@ export async function downloadHlsStream(
   itemUrl: string,
   onProgress: (percent: number) => void
 ) {
-  let streamUrl = itemUrl;
-  if(streamUrl.includes(".m3u8")) {
-    // Already direct HLS
-  } else {
-    // If it's a proxy link or something similar, we assume it redirects to m3u8.
-    // In our case `proxy?url=` fetches m3u8.
-  }
+  // Always use the proxy to bypass 403 Forbidden errors and Referer checks
+  const getProxiedUrl = (url: string) => `/api/proxy?url=${encodeURIComponent(url)}`;
+  
+  const streamUrl = itemUrl.startsWith("/api/proxy") ? itemUrl : getProxiedUrl(itemUrl);
 
   const cache = await caches.open("streamvault-media-cache");
   const urlsToCache = new Set<string>();
   urlsToCache.add(streamUrl);
 
   const res = await fetch(streamUrl);
-  if (!res.ok) throw new Error("Erreur de récupération du flux");
+  if (!res.ok) throw new Error(`Erreur de récupération du flux: ${res.status}`);
   
   const text = await res.text();
 
-  // Parse Master Playlist
+  // Parse Playlist (Master or Media)
   if (text.includes("#EXT-X-STREAM-INF")) {
     const lines = text.split("\n");
     let bestUrl = "";
-    // Extremely simplified: just take the first stream url we find
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].startsWith("#EXT-X-STREAM-INF")) {
            bestUrl = lines[i+1].trim();
@@ -113,24 +109,31 @@ export async function downloadHlsStream(
         }
     }
     if (bestUrl) {
-       bestUrl = resolveUrl(streamUrl, bestUrl);
-       urlsToCache.add(bestUrl);
-       const subRes = await fetch(bestUrl);
+       // Note: bestUrl might already be proxied if it was relative and rewritten by the proxy
+       const absoluteBestUrl = bestUrl.startsWith("/") ? bestUrl : getProxiedUrl(resolveUrl(itemUrl, bestUrl));
+       urlsToCache.add(absoluteBestUrl);
+       
+       const subRes = await fetch(absoluteBestUrl);
        const subText = await subRes.text();
        const subLines = subText.split("\n");
        for (const line of subLines) {
-          if (line && !line.startsWith("#")) {
-             urlsToCache.add(resolveUrl(bestUrl, line.trim()));
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith("#")) {
+             // If the proxy already rewrote it to /api/proxy?url=..., we keep it
+             const chunkUrl = trimmed.startsWith("/") ? trimmed : getProxiedUrl(resolveUrl(absoluteBestUrl, trimmed));
+             urlsToCache.add(chunkUrl);
           }
        }
-       cache.put(bestUrl, new Response(subText));
+       cache.put(absoluteBestUrl, new Response(subText));
     }
   } else {
-    // Single chunk playlist
+    // Media playlist (contains chunks)
     const lines = text.split("\n");
     for (const line of lines) {
-       if (line && !line.startsWith("#")) {
-          urlsToCache.add(resolveUrl(streamUrl, line.trim()));
+       const trimmed = line.trim();
+       if (trimmed && !trimmed.startsWith("#")) {
+          const chunkUrl = trimmed.startsWith("/") ? trimmed : getProxiedUrl(resolveUrl(itemUrl, trimmed));
+          urlsToCache.add(chunkUrl);
        }
     }
   }
@@ -140,8 +143,7 @@ export async function downloadHlsStream(
   const urlsArray = Array.from(urlsToCache);
   let downloaded = 0;
 
-  // Process downloads in small batches
-  const BATCH_SIZE = 5;
+  const BATCH_SIZE = 3; // Smaller batch size for proxy stability
   for (let i = 0; i < urlsArray.length; i += BATCH_SIZE) {
     const batch = urlsArray.slice(i, i + BATCH_SIZE);
     await Promise.all(
@@ -152,6 +154,8 @@ export async function downloadHlsStream(
                const chunkRes = await fetch(url);
                if (chunkRes.ok) {
                  await cache.put(url, chunkRes);
+               } else {
+                 console.warn("Skipping chunk due to status", chunkRes.status, url);
                }
             }
          } catch(e) {
