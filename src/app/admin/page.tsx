@@ -21,6 +21,7 @@ import {
   User,
   Check,
   Megaphone,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -196,6 +197,7 @@ export default function AdminDashboard() {
               { name: "Sagas", icon: FolderOpen, href: "/admin/sagas" },
               { name: "Utilisateurs", icon: Users, href: "/admin/users" },
               { name: "Invitation", icon: Ticket, href: "/admin/invitations" },
+              { name: "Demandes", icon: MessageSquare, href: "/admin/requests", color: "var(--gold)" },
               { name: "Logs", icon: Activity, href: "/admin/logs" },
               { name: "Annonces", icon: Megaphone, href: "/admin/announcements", color: "var(--gold)" },
               { name: "Analytics", icon: BarChart3, href: "/admin/analytics", color: "var(--gold)" },
@@ -238,6 +240,7 @@ export default function AdminDashboard() {
                 { name: "Sagas", icon: FolderOpen, href: "/admin/sagas" },
                 { name: "Utilisateurs", icon: Users, href: "/admin/users" },
                 { name: "Invitations", icon: Ticket, href: "/admin/invitations" },
+                { name: "Demandes", icon: MessageSquare, href: "/admin/requests" },
                 { name: "Logs", icon: Activity, href: "/admin/logs" },
                 { name: "Annonces", icon: Megaphone, href: "/admin/announcements" },
                 { name: "Analytics", icon: BarChart3, href: "/admin/analytics" },

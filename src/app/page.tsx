@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shuffle, Play, Info, ChevronRight, TrendingUp, Clock, Sparkles, Film, Tv } from "lucide-react";
+import { Shuffle, Play, Info, ChevronRight, TrendingUp, Clock, Sparkles, Film, Tv, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -343,9 +343,50 @@ export default function HomePage() {
           />
         ))}
 
+        {/* Media Request CTA (Bottom) */}
+        {!loading && items.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-20 py-16 px-8 rounded-[2.5rem] bg-gradient-to-br from-gold/10 via-surface/40 to-surface/20 border border-gold/10 text-center relative overflow-hidden group"
+          >
+            <div className="absolute inset-0 bg-gold/5 blur-3xl group-hover:bg-gold/10 transition-colors duration-700" />
+            <div className="relative z-10">
+              <Sparkles className="w-10 h-10 text-gold mx-auto mb-6 animate-pulse" />
+              <h2 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">VOUS NE TROUVEZ PAS VOTRE BONHEUR ?</h2>
+              <p className="text-text-muted max-w-xl mx-auto mb-10 text-sm md:text-base leading-relaxed">
+                Notre catalogue s&apos;agrandit chaque jour grâce à vous. Demandez-nous n&apos;importe quel film ou série, et nous ferons de notre mieux pour l&apos;ajouter rapidement.
+              </p>
+              <Link href="/requests">
+                <button className="btn-gold px-10 py-4 text-base font-black uppercase tracking-widest flex items-center gap-3 mx-auto shadow-2xl shadow-gold/20 hover:scale-105 transition-transform">
+                  <Plus className="w-5 h-5" /> Faire une demande
+                </button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
         {!loading && items.length === 0 && (
-          <div className="text-center py-20 bg-surface/30 rounded-3xl border border-white/5 mx-auto max-w-4xl">
-            <p className="text-text-muted text-lg">{t("home.emptyLibrary")}</p>
+          <div className="text-center py-24 bg-surface/30 rounded-[3rem] border border-white/5 mx-auto max-w-4xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gold/5 blur-2xl" />
+            <div className="relative z-10">
+              <Film className="w-16 h-16 text-white/10 mx-auto mb-6" />
+              <p className="text-text-muted text-xl mb-8 font-medium">{t("home.emptyLibrary")}</p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link href="/requests">
+                  <button className="btn-gold px-8 py-3.5 flex items-center gap-2 font-bold">
+                    <Plus className="w-5 h-5" /> Demander un film
+                  </button>
+                </Link>
+                {/* Fallback to admin if user is admin */}
+                <Link href="/admin">
+                  <button className="px-8 py-3.5 rounded-xl border border-white/10 hover:bg-white/5 transition-all font-bold">
+                    Aller au dashboard
+                  </button>
+                </Link>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -156,6 +156,7 @@ const translations: Record<string, Record<string, string>> = {
     "nav.series": "Series",
     "nav.trending": "Trending",
     "nav.myList": "My List",
+    "nav.requests": "Requests",
     "nav.admin": "Admin Dashboard",
     "nav.settings": "Settings",
     "nav.login": "Log in",

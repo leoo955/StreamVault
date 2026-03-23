@@ -186,3 +186,15 @@ model DevicePairingCode {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+model MediaRequest {
+  id            String   @id @default(uuid())
+  title         String
+  type          String   // "Movie" or "Series"
+  tmdbId        Int?
+  status        String   @default("PENDING") // "PENDING", "FULFILLED", "REJECTED"
+  requestedById String
+  note          String?  // Admin note/reason
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
