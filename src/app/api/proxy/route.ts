@@ -1,10 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/db";
+import { jwtVerify } from "jose";
+
+export const runtime = 'edge';
+
+const getSecret = () => {
+  const secret = process.env.JWT_SECRET || "streamvault-secret-key-change-in-production-2024";
+  return new TextEncoder().encode(secret);
+};
 
 export async function GET(req: NextRequest) {
-  // Auth required — prevent anonymous SSRF attacks
-  const user = await getAuthUser(req);
-  if (!user) return new NextResponse("Unauthorized", { status: 401 });
+  // Lightweight auth for Edge: verify JWT from cookies directly
+  const cookieHeader = req.headers.get("cookie") || "";
+  const sessionCookie = cookieHeader
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith("session="));
+
+  if (!sessionCookie) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  try {
+    const token = sessionCookie.split("=").slice(1).join("=");
+    await jwtVerify(token, getSecret());
+  } catch (err) {
+    return new NextResponse("Invalid Session", { status: 401 });
+  }
 
   const targetUrl = req.nextUrl.searchParams.get("url");
 
@@ -12,7 +33,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Missing URL parameters", { status: 400 });
   }
 
-  // Block requests to internal/private networks (SSRF protection)
+  // SSRF Protection for Edge
   try {
     const parsed = new URL(targetUrl);
     const hostname = parsed.hostname.toLowerCase();
@@ -32,33 +53,35 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const targetOrigin = new URL(targetUrl).origin + "/";
     const response = await fetch(targetUrl, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": new URL(targetUrl).origin,
-        "Origin": new URL(targetUrl).origin,
+        "Referer": targetOrigin,
+        "Origin": targetOrigin.slice(0, -1),
       },
     });
 
     if (!response.ok) {
+      console.error(`Edge Proxy: Target returned ${response.status} for ${targetUrl}`);
       return new NextResponse(`Proxy error: ${response.status}`, { status: response.status });
     }
 
     const contentType = response.headers.get("content-type") || "";
-    let body: BodyInit;
+    
+    const headers = new Headers();
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set("Content-Type", contentType);
 
     // Rewrite HLS manifests to redirect internal segments to this proxy
-    if (contentType.includes("mpegurl") || targetUrl.includes(".m3u8")) {
+    if (contentType.includes("mpegurl") || targetUrl.includes(".m3u8") || contentType.includes("application/vnd.apple.mpegurl")) {
       const text = await response.text();
       const baseUrl = targetUrl.substring(0, targetUrl.lastIndexOf("/") + 1);
 
       const rewrittenLines = text.split("\n").map((line) => {
         const trimmed = line.trim();
-        
-        // Ignore empty lines and standard tags
         if (!trimmed) return line;
 
-        // Tags that might contain URIs (like EXT-X-KEY encryption)
         if (trimmed.startsWith("#")) {
           if (trimmed.includes('URI="')) {
             return trimmed.replace(/URI="(.*?)"/g, (match, p1) => {
@@ -69,25 +92,17 @@ export async function GET(req: NextRequest) {
           return line;
         }
 
-        // It's a standard URL to a video chunk or child playlist
         const absoluteUrl = trimmed.startsWith("http") ? trimmed : new URL(trimmed, baseUrl).href;
         return `/api/proxy?url=${encodeURIComponent(absoluteUrl)}`;
       });
 
-      body = rewrittenLines.join("\n");
+      return new NextResponse(rewrittenLines.join("\n"), { headers });
     } else {
-      // For video segments (.ts, .vtt, etc.), stream the binary buffer directly
-      body = await response.arrayBuffer();
+      // Stream directly from source (no buffering, no size limit in Edge Runtime)
+      return new NextResponse(response.body, { headers });
     }
-
-    // Append our own wide-open CORS headers
-    const headers = new Headers();
-    headers.set("Access-Control-Allow-Origin", "*");
-    headers.set("Content-Type", contentType);
-
-    return new NextResponse(body, { headers });
   } catch (error: any) {
-    console.error("Proxy error:", error);
+    console.error("Edge Proxy error:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

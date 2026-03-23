@@ -39,7 +39,15 @@ self.addEventListener('fetch', (event) => {
       caches.open('streamvault-media-cache').then((mediaCache) => {
         return mediaCache.match(event.request).then((cachedResponse) => {
           if (cachedResponse) return cachedResponse;
-          return fetch(event.request);
+          
+          // If not in cache, fetch it. Ensure we include credentials if it's our own proxy
+          const fetchOptions = url.pathname.startsWith('/api/proxy') ? { credentials: 'include' } : {};
+          return fetch(event.request, fetchOptions).then(response => {
+            if (response.status === 403 || response.status === 401) {
+              console.error('[SW] Proxy/Target Access Denied:', response.status, event.request.url);
+            }
+            return response;
+          });
         });
       })
     );
