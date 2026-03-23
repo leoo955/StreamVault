@@ -9,6 +9,12 @@
     "directories": {
       "output": "release"
     },
+    "files": [
+      "electron-main.js",
+      "package.json",
+      "public/icon-192.png"
+    ],
+    "asar": true,
     "win": {
       "target": "nsis",
       "icon": "public/icon-192.png"
