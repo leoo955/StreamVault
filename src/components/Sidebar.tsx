@@ -31,12 +31,11 @@ interface UserData {
 }
 
 const NAV_ITEMS = [
-  { icon: Home, labelKey: "nav.home", href: "/" },
-  { icon: TrendingUp, labelKey: "nav.trending", href: "/trending" },
   { icon: Film, labelKey: "nav.movies", href: "/movies" },
   { icon: Tv, labelKey: "nav.series", href: "/series" },
-  { icon: Heart, labelKey: "nav.myList", href: "/my-list" },
-  { icon: Download, labelKey: "Mes Téléchargements", href: "/downloads" },
+  { icon: Home, labelKey: "nav.home", href: "/" },
+  { icon: MessageSquare, labelKey: "nav.requests", href: "/requests" },
+  { icon: Download, labelKey: "nav.downloads", href: "/downloads" },
 ];
 
 export default function Sidebar() {
@@ -122,7 +121,9 @@ export default function Sidebar() {
             const isActive = pathname === item.href;
             return (
               <Link key={item.href} href={item.href}>
-                <div
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className={`relative flex items-center transition-all duration-300 ${
                     isActive
                       ? "text-white"
@@ -140,14 +141,16 @@ export default function Sidebar() {
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
-                </div>
+                </motion.div>
               </Link>
             );
           })}
 
           {user?.role === "admin" && (
             <Link href="/admin">
-              <div
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className={`flex items-center transition-all duration-300 ${
                   pathname?.startsWith("/admin")
                     ? "text-gold"
@@ -157,7 +160,7 @@ export default function Sidebar() {
                 <span className="text-[11px] lg:text-[13px] font-black tracking-[0.2em] uppercase">
                   {t("nav.admin")}
                 </span>
-              </div>
+              </motion.div>
             </Link>
           )}
         </nav>
@@ -210,6 +213,19 @@ export default function Sidebar() {
                           <User className="w-4 h-4" /> Profils
                         </div>
                       </Link>
+
+                      {/* Trending and List for desktop only in menu? No, Trending is in NAV_ITEMS */}
+                      <Link href="/trending" onClick={() => setShowUserMenu(false)}>
+                        <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-light hover:text-text-primary transition-colors">
+                          <TrendingUp className="w-4 h-4" /> Tendances
+                        </div>
+                      </Link>
+                      <Link href="/my-list" onClick={() => setShowUserMenu(false)}>
+                        <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-light hover:text-text-primary transition-colors">
+                          <Heart className="w-4 h-4" /> Ma Liste
+                        </div>
+                      </Link>
+
                       <Link href="/settings" onClick={() => setShowUserMenu(false)}>
                         <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-light hover:text-text-primary transition-colors">
                           <Settings className="w-4 h-4" /> Réglages
@@ -248,21 +264,29 @@ export default function Sidebar() {
           paddingBottom: "max(env(safe-area-inset-bottom, 8px), 8px)",
         }}
       >
-        {NAV_ITEMS.map((item) => {
+        {/* Reordered items for mobile centrality: Films, Séries, ACCUEIL (CENTER), Demandes, Téléchargement */}
+        {NAV_ITEMS.map((item, idx) => {
           const isActive = pathname === item.href;
+          const isCenter = idx === 2; // Home is at index 2 now
           return (
-            <Link key={item.href} href={item.href} className="flex-1">
+            <Link key={item.href} href={item.href} className="flex-1 min-w-0">
               <div className="flex flex-col items-center gap-0.5 py-1">
-                <item.icon
-                  className={`w-5 h-5 transition-colors ${isActive ? "text-gold" : "text-text-muted"}`}
-                />
-                <span className={`text-[10px] font-medium ${isActive ? "text-gold" : "text-text-muted"}`}>
+                <motion.div
+                  animate={{ scale: isActive ? 1.25 : (isCenter ? 1.1 : 1) }}
+                  whileTap={{ scale: 0.85 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  <item.icon
+                    className={`transition-colors ${isActive ? "text-gold" : "text-text-muted"} ${isCenter ? "w-6 h-6" : "w-5 h-5"}`}
+                  />
+                </motion.div>
+                <span className={`text-[9px] font-medium truncate w-full text-center ${isActive ? "text-gold" : "text-text-muted"}`}>
                   {t(item.labelKey)}
                 </span>
                 {isActive && (
                   <motion.div
                     layoutId="mobileIndicator"
-                    className="w-4 h-[2px] rounded-full mt-0.5"
+                    className="w-4 h-[1.5px] rounded-full mt-0.5"
                     style={{ background: "var(--gold)" }}
                   />
                 )}
@@ -271,46 +295,36 @@ export default function Sidebar() {
           );
         })}
 
-        {/* Admin link */}
-        {user?.role === "admin" && (
-          <Link href="/admin" className="flex-1">
+        {/* Account Link (Compte) */}
+        {user ? (
+          <Link href="/settings" className="flex-1 min-w-0">
             <div className="flex flex-col items-center gap-0.5 py-1">
-              <LayoutDashboard className={`w-5 h-5 transition-colors ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`} />
-              <span className={`text-[10px] font-medium ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`}>
-                Admin
+              <motion.div
+                animate={{ scale: pathname === "/settings" ? 1.2 : 1 }}
+                whileTap={{ scale: 0.85 }}
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black"
+                style={{ 
+                  background: pathname === "/settings" ? "var(--gold)" : "var(--gold-glow)", 
+                  color: pathname === "/settings" ? "black" : "var(--gold)", 
+                  border: "1px solid var(--gold)" 
+                }}
+              >
+                {user.username[0]?.toUpperCase()}
+              </motion.div>
+              <span className={`text-[9px] font-medium truncate w-full text-center ${pathname === "/settings" ? "text-gold" : "text-text-muted"}`}>
+                Compte
               </span>
             </div>
           </Link>
-        )}
-
-        {/* Search */}
-        <Link href="/search" className="flex-1">
-          <div className="flex flex-col items-center gap-0.5 py-1">
-            <Search className={`w-5 h-5 transition-colors ${pathname === "/search" ? "text-gold" : "text-text-muted"}`} />
-            <span className={`text-[10px] font-medium ${pathname === "/search" ? "text-gold" : "text-text-muted"}`}>
-              Recherche
-            </span>
-          </div>
-        </Link>
-
-        {/* Account */}
-        {user ? (
-          <Link href="/settings" className="flex-1">
-            <div className="flex flex-col items-center gap-0.5 py-1">
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black"
-                style={{ background: "var(--gold-glow)", color: "var(--gold)", border: "1px solid var(--gold)" }}
-              >
-                {user.username[0]?.toUpperCase()}
-              </div>
-              <span className="text-[10px] font-medium text-text-muted">Compte</span>
-            </div>
-          </Link>
         ) : (
-          <Link href="/login" className="flex-1">
+          <Link href="/login" className="flex-1 min-w-0">
             <div className="flex flex-col items-center gap-0.5 py-1">
-              <LogIn className="w-5 h-5 text-text-muted" />
-              <span className="text-[10px] font-medium text-text-muted">Connexion</span>
+              <motion.div whileTap={{ scale: 0.85 }}>
+                <LogIn className="w-5 h-5 text-text-muted" />
+              </motion.div>
+              <span className="text-[9px] font-medium text-text-muted truncate w-full text-center">
+                Connexion
+              </span>
             </div>
           </Link>
         )}
