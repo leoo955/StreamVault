@@ -19,6 +19,8 @@ const translations: Record<string, Record<string, string>> = {
     "nav.login": "Se connecter",
     "nav.register": "Créer un compte",
     "nav.logout": "Déconnexion",
+    "nav.downloads": "Téléchargement",
+    "nav.requests": "Demandes",
 
     // Home
     "home.continueWatching": "Continuer à regarder",
@@ -163,6 +165,7 @@ const translations: Record<string, Record<string, string>> = {
     "nav.login": "Log in",
     "nav.register": "Sign up",
     "nav.logout": "Log out",
+    "nav.downloads": "Downloads",
 
     // Home
     "home.continueWatching": "Continue Watching",
