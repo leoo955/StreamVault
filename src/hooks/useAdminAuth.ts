@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useUser } from "@/lib/userProvider";
 
 /**
  * Hook that verifies the current user is an admin.
@@ -8,22 +9,16 @@ import { useState, useEffect } from "react";
  * Returns `true` only when admin role is confirmed.
  */
 export function useAdminAuth(): boolean {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, isAdmin, loading } = useUser();
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then(r => r.json())
-      .then(d => {
-        if (!d.user || d.user.role !== "admin") {
-          window.location.href = "/";
-          return;
-        }
-        setIsAdmin(true);
-      })
-      .catch(() => {
-        window.location.href = "/login";
-      });
-  }, []);
+    if (loading) return;
+    if (!user) {
+      window.location.href = "/login";
+    } else if (!isAdmin) {
+      window.location.href = "/";
+    }
+  }, [user, isAdmin, loading]);
 
   return isAdmin;
 }

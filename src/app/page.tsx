@@ -9,6 +9,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import MediaRow from "@/components/MediaRow";
 import StudioRow from "@/components/StudioRow";
+import TrendingRow from "@/components/TrendingRow";
 import { HeroSkeleton, RowSkeleton } from "@/components/Skeleton";
 import { useI18n } from "@/lib/i18n";
 import { MediaItemSummary } from "@/lib/db";
@@ -58,6 +59,8 @@ export default function HomePage() {
   const [backgroundReady, setBackgroundReady] = useState(false);
   const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [heroIdx, setHeroIdx] = useState(0);
+  const [trending, setTrending] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const { t } = useI18n();
   const router = useRouter();
 
@@ -74,14 +77,17 @@ export default function HomePage() {
 
         // 2. BACKGROUND FULL FETCH (Delay slightly to ensure UI is interactive)
         setTimeout(() => {
-          fetch("/api/media?summary=true")
-            .then(r => r.json())
-            .then(d => {
-              const allItems = (d.items || []).map((i: any) => normalize(i, progressRes.progress || []));
-              setItems(allItems);
-              setBackgroundReady(true);
-            })
-            .catch(() => {});
+          Promise.all([
+            fetch("/api/media?summary=true").then(r => r.json()),
+            fetch("/api/trending").then(r => r.json()).catch(() => ({ trending: [] })),
+            fetch("/api/recommendations").then(r => r.json()).catch(() => ({ recommendations: [] })),
+          ]).then(([mediaData, trendingData, recsData]) => {
+            const allItems = (mediaData.items || []).map((i: any) => normalize(i, progressRes.progress || []));
+            setItems(allItems);
+            setTrending(trendingData.trending || []);
+            setRecommendations(recsData.recommendations || []);
+            setBackgroundReady(true);
+          }).catch(() => {});
         }, 800);
       })
       .catch(() => setLoading(false));
@@ -174,7 +180,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* ─── HERO CAROUSEL ─── */}
       {hero && (
-        <div className="relative h-[100vh] w-full overflow-hidden">
+        <div className="relative h-[85vh] md:h-[100vh] w-full overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={hero.id}
@@ -199,7 +205,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[var(--deep-black)]/70 via-transparent to-transparent" />
 
           {/* Hero Info — bottom left */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-20 z-10">
+          <div className="absolute bottom-0 left-0 right-0 p-6 pb-16 md:p-12 lg:p-20 z-10">
             <motion.div
               key={hero.id + "-info"}
               initial={{ opacity: 0, x: -20 }}
@@ -297,12 +303,14 @@ export default function HomePage() {
       )}
 
       {/* ─── CONTENT ROWS ─── */}
-      <div className="px-4 md:px-8 space-y-12 pb-24 -mt-20 relative z-20">
+      <div className="px-4 md:px-8 space-y-12 pb-24 -mt-6 md:-mt-20 relative z-20">
         <StudioRow />
 
-        {/* URGENT: Recently Added & Continue Watching (if ready) */}
+        {/* URGENT: Continue Watching + Trending */}
         {continueItems.length > 0 && <MediaRow title="Continuer à regarder" items={continueItems} />}
+        {trending.length > 0 && <TrendingRow items={trending} />}
         {latest.length > 0 && <MediaRow title={t("home.recentlyAdded")} items={latest} />}
+        {recommendations.length > 0 && <MediaRow title="Recommandé pour toi" items={recommendations} />}
 
         {/* BACKGROUND: The rest is deferred */}
         {backgroundReady && Object.keys(sagas).length > 0 && (

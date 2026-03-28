@@ -4,9 +4,11 @@ import { useState, useEffect, MouseEvent } from "react";
 import { Download, Check, AlertCircle } from "lucide-react";
 import { saveDownloadMetadata, getDownload, deleteDownload, downloadHlsStream, DownloadedMedia } from "@/lib/downloader";
 import { usePlan } from "@/hooks/usePlan";
+import { usePopup } from "@/lib/popup";
 
 export default function DownloadButton({ media, className = "" }: { media: DownloadedMedia, className?: string }) {
   const { plan } = usePlan();
+  const { showPopup, showSuccess, showError, showConfirm } = usePopup();
   const [status, setStatus] = useState<"idle" | "downloading" | "downloaded" | "error">("idle");
   const [progress, setProgress] = useState(0);
 
@@ -21,16 +23,27 @@ export default function DownloadButton({ media, className = "" }: { media: Downl
     e.stopPropagation();
 
     if (plan && !plan.canDownload) {
-        alert(`Le téléchargement hors-ligne nécessite un plan Premium ou Ultimate. (Votre plan actuel : ${plan.name})`);
-        return;
+      showPopup({
+        type: "warning",
+        title: "Plan insuffisant",
+        message: `Le téléchargement hors-ligne nécessite un plan Premium ou Ultimate.`,
+        details: `Votre plan actuel : ${plan.name}`,
+      });
+      return;
     }
 
     if (status === "downloaded") {
-      if (confirm("Supprimer ce téléchargement hors-ligne ?")) {
-         await deleteDownload(media.id);
-         setStatus("idle");
-         setProgress(0);
-      }
+      showConfirm(
+        "Supprimer le téléchargement ?",
+        "Ce contenu sera retiré de votre appareil. Vous pourrez le retélécharger plus tard.",
+        async () => {
+          await deleteDownload(media.id);
+          setStatus("idle");
+          setProgress(0);
+          showSuccess("Supprimé", "Le téléchargement a été supprimé de votre appareil.");
+        },
+        "Supprimer"
+      );
       return;
     }
 
@@ -39,16 +52,49 @@ export default function DownloadButton({ media, className = "" }: { media: Downl
     setStatus("downloading");
     setProgress(0);
 
+    // Show download popup
+    showPopup({
+      type: "download",
+      title: "Téléchargement en cours",
+      message: media.title,
+      progress: 0,
+    });
+
     try {
-      await downloadHlsStream(media.streamUrl, (p) => {
+      const cachedUrls = await downloadHlsStream(media.streamUrl, (p) => {
         setProgress(p);
+        // Update the download popup progress in real-time
+        showPopup({
+          type: "download",
+          title: "Téléchargement en cours",
+          message: media.title,
+          progress: p,
+        });
       });
+
+      // Save the proxied streamUrl for offline playback
+      const proxiedStreamUrl = media.streamUrl.startsWith("/api/proxy")
+        ? media.streamUrl
+        : `/api/proxy?url=${encodeURIComponent(media.streamUrl)}`;
       media.downloadedAt = new Date().toISOString();
+      media.cachedUrls = cachedUrls;
+      media.streamUrl = proxiedStreamUrl;
       await saveDownloadMetadata(media);
       setStatus("downloaded");
+
+      showSuccess(
+        "Téléchargement terminé !",
+        `"${media.title}" est maintenant disponible hors-ligne.`,
+        "Vous pouvez le regarder sans connexion internet depuis la page Téléchargements."
+      );
     } catch (error) {
       console.error("Download failed:", error);
       setStatus("error");
+      showError(
+        "Échec du téléchargement",
+        `Impossible de télécharger "${media.title}".`,
+        "Vérifiez votre connexion internet et réessayez."
+      );
     }
   };
 
@@ -72,6 +118,10 @@ export default function DownloadButton({ media, className = "" }: { media: Downl
          )}
          {status === "downloaded" && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />}
          {status === "error" && <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />}
+         {/* DEV badge */}
+         <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 text-[6px] font-black tracking-wider bg-amber-500 text-black px-1.5 py-px rounded-sm leading-tight z-20">
+           DEV
+         </span>
       </div>
     </button>
   );

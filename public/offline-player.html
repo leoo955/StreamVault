@@ -309,71 +309,152 @@
         video.addEventListener('waiting', () => videoContainer.classList.add('buffering'));
         video.addEventListener('playing', () => videoContainer.classList.remove('buffering'));
 
-        // DB Data load
+        // DB Data load — robust version with error handling
         function loadDownloads() {
-            const req = indexedDB.open("streamvault-downloads", 1);
-            req.onsuccess = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains("media")) {
-                    document.getElementById('empty').style.display = 'block';
-                    return;
+            const emptyDiv = document.getElementById('empty');
+
+            // Safety: if nothing loads in 3 seconds, show empty message
+            const safetyTimeout = setTimeout(() => {
+                if (document.getElementById('grid').children.length === 0) {
+                    emptyDiv.style.display = 'block';
+                    console.warn('[Offline] Safety timeout — showing empty state');
                 }
-                const tx = db.transaction("media", "readonly");
-                const store = tx.objectStore("media");
-                const reqAll = store.getAll();
-                reqAll.onsuccess = () => {
-                    const data = reqAll.result;
-                    if (!data || data.length === 0) {
-                        document.getElementById('empty').style.display = 'block';
-                        return;
-                    }
-                    data.sort((a,b) => new Date(b.downloadedAt) - new Date(a.downloadedAt));
-                    
-                    const grid = document.getElementById('grid');
-                    grid.innerHTML = '';
-                    
-                    data.forEach(media => {
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.onclick = () => playMedia(media);
-                        card.innerHTML = `
-                            <div class="poster-container" style="position:relative">
-                                <img src="${media.posterUrl || ''}" class="poster" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMxQTFBMUEiLz48L3N2Zz4='">
-                                <div class="play-overlay">
-                                    <div class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg></div>
-                                </div>
-                            </div>
-                            <div class="info">
-                                <h3 class="title">${media.title}</h3>
-                                <p class="subtitle">${media.type === 'Series' ? 'Saison ' + media.seasonNum + ' • Épisode ' + media.episodeNum : 'Film'} | ${new Date(media.downloadedAt).toLocaleDateString()}</p>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    });
-                };
-            };
+            }, 3000);
+
+            function tryOpenDB(version) {
+                try {
+                    const req = indexedDB.open("streamvault-downloads", version);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains("media")) {
+                            db.createObjectStore("media", { keyPath: "id" });
+                        }
+                    };
+                    req.onblocked = () => {
+                        console.warn('[Offline] DB blocked — another tab may have it open');
+                        clearTimeout(safetyTimeout);
+                        emptyDiv.style.display = 'block';
+                        emptyDiv.querySelector('p').textContent = 'La base de données est verrouillée. Fermez les autres onglets StreamVault et rechargez.';
+                    };
+                    req.onerror = (e) => {
+                        console.error('[Offline] DB error:', e.target.error);
+                        clearTimeout(safetyTimeout);
+                        if (version === 2) {
+                            console.log('[Offline] Retrying with DB version 1...');
+                            tryOpenDB(1);
+                        } else {
+                            emptyDiv.style.display = 'block';
+                        }
+                    };
+                    req.onsuccess = (e) => {
+                        clearTimeout(safetyTimeout);
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains("media")) {
+                            emptyDiv.style.display = 'block';
+                            return;
+                        }
+                        try {
+                            const tx = db.transaction("media", "readonly");
+                            const store = tx.objectStore("media");
+                            const reqAll = store.getAll();
+                            reqAll.onerror = () => {
+                                console.error('[Offline] getAll error');
+                                emptyDiv.style.display = 'block';
+                            };
+                            reqAll.onsuccess = () => {
+                                const data = reqAll.result;
+                                if (!data || data.length === 0) {
+                                    emptyDiv.style.display = 'block';
+                                    return;
+                                }
+                                data.sort((a,b) => new Date(b.downloadedAt) - new Date(a.downloadedAt));
+                                
+                                const grid = document.getElementById('grid');
+                                grid.innerHTML = '';
+                                
+                                data.forEach(media => {
+                                    const card = document.createElement('div');
+                                    card.className = 'card';
+                                    card.onclick = () => playMedia(media);
+                                    card.innerHTML = `
+                                        <div class="poster-container" style="position:relative">
+                                            <img src="${media.posterUrl || ''}" class="poster" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMxQTFBMUEiLz48L3N2Zz4='">
+                                            <div class="play-overlay">
+                                                <div class="play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg></div>
+                                            </div>
+                                        </div>
+                                        <div class="info">
+                                            <h3 class="title">${media.title}</h3>
+                                            <p class="subtitle">${media.type === 'Series' ? 'Saison ' + media.seasonNum + ' • Épisode ' + media.episodeNum : 'Film'} | ${new Date(media.downloadedAt).toLocaleDateString()}</p>
+                                        </div>
+                                    `;
+                                    grid.appendChild(card);
+                                });
+                                console.log('[Offline] Loaded', data.length, 'downloads');
+                            };
+                        } catch (err) {
+                            console.error('[Offline] Transaction error:', err);
+                            emptyDiv.style.display = 'block';
+                        }
+                    };
+                } catch (err) {
+                    console.error('[Offline] indexedDB.open failed:', err);
+                    clearTimeout(safetyTimeout);
+                    emptyDiv.style.display = 'block';
+                }
+            }
+
+            // Try version 2 first (matches current downloader), fallback to 1
+            tryOpenDB(2);
         }
 
         function playMedia(media) {
             const modal = document.getElementById('player-modal');
             document.getElementById('now-playing-title').innerText = media.title;
             modal.classList.add('active');
-            updateVolume(1); // Reset volume
+            updateVolume(1);
+
+            // The streamUrl stored in IndexedDB is already proxied (/api/proxy?url=...)
+            // so it matches the cache keys exactly.
+            const streamUrl = media.streamUrl;
+            console.log('[Offline Player] Loading stream:', streamUrl);
 
             if (Hls.isSupported()) {
                 if (hlsInstance) { hlsInstance.destroy(); }
                 hlsInstance = new Hls({
                     maxBufferLength: 30,
-                    startLevel: -1
+                    startLevel: -1,
+                    // Don't set custom XHR headers — we're loading from SW cache
+                    enableWorker: false, // Avoid worker issues with SW-intercepted requests
                 });
-                hlsInstance.loadSource(media.streamUrl);
+                hlsInstance.loadSource(streamUrl);
                 hlsInstance.attachMedia(video);
                 hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() {
                     video.play().catch(e => console.warn("Auto-play blocked", e));
                 });
+                // Error recovery: skip broken segments instead of crashing
+                hlsInstance.on(Hls.Events.ERROR, function(event, data) {
+                    console.warn('[Offline Player] HLS Error:', data.type, data.details);
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                console.log('[Offline Player] Attempting recovery...');
+                                hlsInstance.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                hlsInstance.recoverMediaError();
+                                break;
+                            default:
+                                console.error('[Offline Player] Fatal error, cannot recover');
+                                break;
+                        }
+                    }
+                });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = media.streamUrl;
+                video.src = streamUrl;
                 video.play();
+            } else {
+                alert("Votre navigateur ne supporte pas la lecture HLS hors-ligne.");
             }
         }
 

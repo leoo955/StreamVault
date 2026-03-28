@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import CommentsSection from "@/components/CommentsSection";
 import StarRating from "@/components/StarRating";
 import DownloadButton from "@/components/DownloadButton";
+import ShareButton from "@/components/ShareButton";
 import { useImageColors } from "@/hooks/useImageColors";
 
 interface Episode {
@@ -156,14 +157,15 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       </div>
 
       {/* Content */}
-      <div className="px-8 -mt-32 relative z-10">
-        <div className="flex gap-8">
+      <div className="px-4 md:px-8 -mt-24 md:-mt-32 relative z-10">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Poster with dynamic glow */}
           <div
-            className="w-48 h-72 rounded-xl shrink-0 overflow-hidden shadow-2xl relative"
+            className="w-40 h-60 md:w-56 md:h-80 mx-auto md:mx-0 rounded-2xl shrink-0 overflow-hidden shadow-2xl relative"
             style={{
               background: "var(--surface)",
-              boxShadow: `0 0 40px ${colors.dominant}40, 0 20px 60px ${colors.darkMuted}`,
+              boxShadow: `0 0 40px ${colors.dominant}40, 0 20px 60px rgba(0,0,0,0.8)`,
+              border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
             {item.posterUrl ? (
@@ -173,83 +175,95 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
             )}
           </div>
 
-          <div className="flex-1 pt-16">
-            <h1 className="text-4xl font-bold mb-2">{item.title}</h1>
-            {item.tagline && <p className="text-gold italic mb-2">&quot;{item.tagline}&quot;</p>}
-            <StarRating mediaId={id} />
+          <div className="flex-1 pt-4 md:pt-16 text-center md:text-left">
+            <h1 className="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight">{item.title}</h1>
+            {item.tagline && <p className="text-gold italic mb-3 text-sm md:text-base opacity-90 tracking-wide">&quot;{item.tagline}&quot;</p>}
+            
+            <div className="flex justify-center md:justify-start mb-6">
+              <StarRating mediaId={id} />
+            </div>
 
-            <div className="flex items-center gap-4 text-sm text-text-secondary mb-4 flex-wrap">
-              {item.year > 0 && <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{item.year}</span>}
-              {item.runtime > 0 && <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{item.runtime} min</span>}
-              {item.communityRating && item.communityRating > 0 && <span className="flex items-center gap-1"><Star className="w-4 h-4 text-gold" />{item.communityRating}/10</span>}
-              <span className="px-2 py-0.5 rounded text-xs" style={{ background: "var(--surface-light)" }}>{item.type === "Movie" ? "Film" : "Série"}</span>
+            <div className="flex items-center justify-center md:justify-start gap-3 md:gap-4 text-xs md:text-sm text-text-secondary mb-6 flex-wrap font-medium">
+              {item.year > 0 && <span className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg"><Calendar className="w-3.5 h-3.5 text-gold" />{item.year}</span>}
+              {item.runtime > 0 && <span className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg"><Clock className="w-3.5 h-3.5 text-gold" />{item.runtime} min</span>}
+              {item.communityRating && item.communityRating > 0 && (
+                <span className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg">
+                  <Star className="w-3.5 h-3.5 text-gold" fill="currentColor" />
+                  {item.communityRating.toFixed(1)}/10
+                </span>
+              )}
+              <span className="px-3 py-1 rounded-lg bg-gold/10 text-gold border border-gold/20 font-bold uppercase tracking-widest text-[10px]">
+                {item.type === "Movie" ? "Film" : "Série"}
+              </span>
               {item.type === "Series" && totalEpisodes > 0 && (
-                <span className="text-xs text-text-muted">{item.seasons?.length} saison{(item.seasons?.length || 0) > 1 ? "s" : ""} • {totalEpisodes} épisode{totalEpisodes > 1 ? "s" : ""}</span>
+                <span className="text-[11px] text-text-muted opacity-80 uppercase tracking-wider">
+                  {item.seasons?.length} saison{(item.seasons?.length || 0) > 1 ? "s" : ""} • {totalEpisodes} épisodes
+                </span>
               )}
             </div>
 
             {/* Genres */}
             {item.genres.length > 0 && (
-              <div className="flex gap-2 mb-4 flex-wrap">
+              <div className="flex justify-center md:justify-start gap-2 mb-6 flex-wrap">
                 {item.genres.map((g) => (
-                  <span key={g} className="px-3 py-1 rounded-full text-xs" style={{ border: "1px solid var(--surface-light)" }}>{g}</span>
+                  <span key={g} className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-surface-light/30 border border-white/5">{g}</span>
                 ))}
               </div>
             )}
 
             {/* Saga badge */}
             {item.saga && (
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-6">
                 <Layers className="w-4 h-4 text-gold" />
-                <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ background: "var(--gold-glow)", border: "1px solid var(--gold)", color: "var(--gold)" }}>{t("saga.collection")} : {item.saga}</span>
+                <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest" style={{ background: "var(--gold-glow)", border: "1px solid var(--gold)", color: "var(--gold)" }}>
+                  {item.saga}
+                </span>
               </div>
             )}
 
-            {/* Languages */}
-            {item.languages && item.languages.length > 0 && (
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
-                <Globe className="w-4 h-4 text-text-muted" />
-                {item.languages.map((l) => (
-                  <span key={l} className="px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ background: "var(--surface)", border: "1px solid var(--surface-light)" }}>{l}</span>
-                ))}
-              </div>
+            {item.overview && (
+              <p className="text-text-secondary text-sm md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto md:mx-0 opacity-90">
+                {item.overview}
+              </p>
             )}
-
-            {item.overview && <p className="text-text-secondary leading-relaxed mb-6 max-w-2xl">{item.overview}</p>}
 
             {/* Actions Row */}
-            <div className="flex items-center gap-4 mt-8 flex-wrap">
+            <div className="flex items-center justify-center md:justify-start gap-4 mt-8 flex-wrap">
               {/* Play button — for movies */}
               {item.type === "Movie" && item.streamUrl && (
-                <Link href={`/watch/${item.id}`}>
-                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="btn-gold flex items-center gap-2">
-                    <Play className="w-5 h-5" /> {t("detail.watch")}
+                <Link href={`/watch/${item.id}`} className="w-full sm:w-auto">
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn-gold w-full flex items-center justify-center gap-3 py-4 px-8 text-lg">
+                    <Play className="w-6 h-6" fill="currentColor" /> {t("detail.watch")}
                   </motion.button>
                 </Link>
               )}
 
               {/* Play button — for series */}
               {item.type === "Series" && item.seasons && item.seasons.length > 0 && (
-                <Link href={`/watch/${item.id}?s=${item.lastSeasonSaved || 1}&e=${item.lastEpisodeSaved || 1}`}>
-                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="btn-gold flex items-center gap-2">
-                    <Play className="w-5 h-5" /> {t("detail.watch")}
+                <Link href={`/watch/${item.id}?s=${item.lastSeasonSaved || 1}&e=${item.lastEpisodeSaved || 1}`} className="w-full sm:w-auto">
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn-gold w-full flex items-center justify-center gap-3 py-4 px-8 text-lg">
+                    <Play className="w-6 h-6" fill="currentColor" /> {t("detail.watch")}
                   </motion.button>
                 </Link>
               )}
 
-              {/* Offline Download Button — for movies */}
-              {item.type === "Movie" && item.streamUrl && (
-                <DownloadButton
-                  media={{
-                    id: item.id,
-                    title: item.title,
-                    posterUrl: item.posterUrl,
-                    streamUrl: item.streamUrl,
-                    type: item.type,
-                    downloadedAt: "",
-                  }}
-                />
-              )}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                {/* Offline Download Button — for movies */}
+                {item.type === "Movie" && item.streamUrl && (
+                  <DownloadButton
+                    className="flex-1 sm:flex-none justify-center py-4"
+                    media={{
+                      id: item.id,
+                      title: item.title,
+                      posterUrl: item.posterUrl,
+                      streamUrl: item.streamUrl,
+                      type: item.type,
+                      downloadedAt: "",
+                    }}
+                  />
+                )}
+                <ShareButton title={item.title} mediaId={item.id} />
+              </div>
             </div>
 
             {item.studios && item.studios.length > 0 && (

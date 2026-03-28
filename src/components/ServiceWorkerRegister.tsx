@@ -7,29 +7,50 @@ export default function ServiceWorkerRegister() {
   const router = useRouter();
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((registration) => {
-            console.log("Service Worker registered with scope:", registration.scope);
-            
-            // Proactively cache critical Offline paths using vanilla fetch for HTML
-            setTimeout(() => {
-               fetch("/offline.html").catch(() => {});
-            }, 2500);
+    if (!("serviceWorker" in navigator)) return;
 
-            // Force Next.js to prefetch the complete RSC payload and JS chunks for the downloads page
-            // The Service Worker generic GET cache intercepts all of this naturally.
-            setTimeout(() => {
-               router.prefetch("/downloads");
-            }, 3000);
-          })
-          .catch((error) => {
-            console.error("Service Worker registration failed:", error);
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          console.log("[SWR] Registered:", registration.scope);
+
+          // Listen for SW updates and auto-activate
+          registration.addEventListener("updatefound", () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener("statechange", () => {
+                if (newWorker.state === "activated") {
+                  console.log("[SWR] New Service Worker activated");
+                }
+              });
+            }
           });
-      });
-    }
+
+          // Pre-cache offline page
+          setTimeout(() => {
+            fetch("/offline.html").catch(() => {});
+          }, 2000);
+
+          // Pre-cache key routes for faster offline transition
+          setTimeout(() => {
+            router.prefetch("/downloads");
+            router.prefetch("/offline");
+          }, 3000);
+
+          // Request persistent storage so the browser doesn't auto-evict downloads
+          if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist().then((granted) => {
+              if (granted) {
+                console.log("[SWR] Persistent storage granted ✓");
+              }
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("[SWR] Registration failed:", error);
+        });
+    });
   }, [router]);
 
   return null;

@@ -19,7 +19,7 @@ export default function HeroHeader({ item, loading }: HeroHeaderProps) {
   const hasProgress = progressPercent > 0 && progressPercent < 100;
 
   return (
-    <div className="relative h-[70vh] min-h-[500px] max-h-[700px] w-full overflow-hidden rounded-2xl">
+    <div className="relative h-[60vh] sm:h-[70vh] min-h-[400px] md:min-h-[500px] max-h-[700px] w-full overflow-hidden rounded-2xl">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -41,19 +41,19 @@ export default function HeroHeader({ item, loading }: HeroHeaderProps) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-        className="absolute bottom-0 left-0 right-0 p-10"
+        className="absolute bottom-0 left-0 right-0 p-6 md:p-10"
       >
         {/* Title */}
-        <h1 className="text-5xl font-bold mb-3 max-w-2xl leading-tight">
+        <h1 className="text-3xl md:text-5xl font-bold mb-3 max-w-full md:max-w-2xl leading-tight">
           {item.title}
         </h1>
 
         {/* Meta info */}
-        <div className="flex items-center gap-3 mb-4 text-sm text-text-secondary">
-          {item.year > 0 && <span>{item.year}</span>}
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4 text-xs md:text-sm text-text-secondary font-medium">
+          {item.year > 0 && <span className="bg-white/10 px-2 py-0.5 rounded">{item.year}</span>}
           {item.runtime > 0 && (
             <>
-              <span className="w-1 h-1 rounded-full bg-text-muted" />
+              <span className="hidden md:block w-1 h-1 rounded-full bg-text-muted" />
               <span>{item.runtime} min</span>
             </>
           )}
@@ -69,25 +69,25 @@ export default function HeroHeader({ item, loading }: HeroHeaderProps) {
           {item.genres.length > 0 && (
             <>
               <span className="w-1 h-1 rounded-full bg-text-muted" />
-              <span>{item.genres.slice(0, 3).join(" • ")}</span>
+              <span className="opacity-80">{item.genres.slice(0, 2).join(" • ")}</span>
             </>
           )}
         </div>
 
         {/* Tagline or Overview */}
         {item.tagline ? (
-          <p className="text-text-secondary text-base italic mb-6 max-w-xl">
+          <p className="text-text-secondary text-sm md:text-base italic mb-6 max-w-xl opacity-90">
             &ldquo;{item.tagline}&rdquo;
           </p>
         ) : (
-          <p className="text-text-secondary text-base mb-6 max-w-xl line-clamp-2">
+          <p className="text-text-secondary text-sm md:text-base mb-6 max-w-xl line-clamp-2 md:line-clamp-3 opacity-90">
             {item.overview}
           </p>
         )}
 
         {/* Progress bar */}
         {hasProgress && (
-          <div className="mb-5 max-w-md">
+          <div className="mb-5 max-w-sm md:max-w-md">
             <div className="h-1 rounded-full bg-surface-light overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
@@ -97,37 +97,37 @@ export default function HeroHeader({ item, loading }: HeroHeaderProps) {
                 style={{ background: "var(--gold-shimmer)" }}
               />
             </div>
-            <p className="text-xs text-text-muted mt-1.5">
+            <p className="text-[10px] md:text-xs text-text-muted mt-1.5 font-medium uppercase tracking-wider">
               {Math.round(progressPercent)}% regardé
             </p>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
-          <Link href={`/watch/${item.id}`}>
+        <div className="flex items-center gap-2 md:gap-3">
+          <Link href={`/watch/${item.id}`} className="flex-1 md:flex-none">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="btn-gold flex items-center gap-2 text-base"
+              className="btn-gold w-full flex items-center justify-center gap-2 text-sm md:text-base py-2.5 md:py-3"
             >
-              <Play className="w-5 h-5" fill="currentColor" />
-              {hasProgress ? "Reprendre" : "Regarder Maintenant"}
+              <Play className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" />
+              {hasProgress ? "Reprendre" : "Regarder"}
             </motion.button>
           </Link>
 
-          <Link href={`/detail/${item.id}`}>
+          <Link href={`/detail/${item.id}`} className="flex-1 md:flex-none">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg text-base font-medium transition-all duration-200"
+              className="w-full flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-medium transition-all duration-200"
               style={{
                 background: "rgba(245, 245, 245, 0.1)",
                 backdropFilter: "blur(10px)",
                 border: "1px solid rgba(245, 245, 245, 0.15)",
               }}
             >
-              <Info className="w-5 h-5" />
+              <Info className="w-4 h-4 md:w-5 md:h-5" />
               Plus d&apos;infos
             </motion.button>
           </Link>

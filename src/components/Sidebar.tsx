@@ -21,6 +21,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useUser, clearUserCache } from "@/lib/userProvider";
 
 import NotificationBell from "./NotificationBell";
 import PwaInstallButton from "./PwaInstallButton";
@@ -36,11 +37,12 @@ const NAV_ITEMS = [
   { icon: Film, labelKey: "nav.movies", href: "/movies" },
   { icon: Tv, labelKey: "nav.series", href: "/series" },
   { icon: Heart, labelKey: "nav.myList", href: "/my-list" },
-  { icon: Download, labelKey: "Mes Téléchargements", href: "/downloads" },
+  { icon: Download, labelKey: "Téléchargements", href: "/downloads" },
 ];
 
 export default function Sidebar() {
-  const [user, setUser] = useState<UserData | null>(null);
+  const { user: userData } = useUser();
+  const user = userData as UserData | null;
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -53,13 +55,6 @@ export default function Sidebar() {
     pathname?.startsWith("/register") ||
     pathname?.startsWith("/watch") ||
     pathname?.startsWith("/profiles");
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => { if (d.user) setUser(d.user); })
-      .catch(() => {});
-  }, [pathname]);
 
   // Close user menu on click outside
   useEffect(() => {
@@ -74,7 +69,7 @@ export default function Sidebar() {
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
+    clearUserCache();
     setShowUserMenu(false);
     router.push("/login");
   };
@@ -237,83 +232,70 @@ export default function Sidebar() {
         </div>
       </header>
 
-      {/* ===== MOBILE: Bottom Tab Bar ===== */}
+      {/* ===== MOBILE: Bottom Tab Bar (Premium Redesign) ===== */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-end justify-around px-2 pb-safe"
+        className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center justify-between px-6 py-3 w-[min(90vw,400px)] rounded-full shadow-2xl"
         style={{
-          background: "linear-gradient(to top, rgba(5,5,5,0.98) 0%, rgba(5,5,5,0.9) 100%)",
-          backdropFilter: "blur(8px)",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          paddingTop: "8px",
-          paddingBottom: "max(env(safe-area-inset-bottom, 8px), 8px)",
+          background: "rgba(10, 10, 10, 0.85)",
+          backdropFilter: "blur(16px) saturate(180%)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.4), inset 0 0 20px rgba(255,255,255,0.02)",
         }}
       >
-        {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+        {(() => {
+          const mobileItems: { icon: any; label: string; href: string }[] = [
+            { icon: Search, label: "Recherche", href: "/search" },
+            { icon: Download, label: "Télécharger", href: "/downloads" },
+            { icon: Home, label: "Accueil", href: "/" },
+            { icon: Heart, label: "Favoris", href: "/my-list" },
+          ];
+          if (user?.role === "admin") {
+            mobileItems.push({ icon: LayoutDashboard, label: "Admin", href: "/admin" });
+          }
+          mobileItems.push({ icon: User, label: "Compte", href: "/settings" });
+          return mobileItems;
+        })().map((item) => {
+          const isActive = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
+          const isHome = item.icon === Home;
+
           return (
-            <Link key={item.href} href={item.href} className="flex-1">
-              <div className="flex flex-col items-center gap-0.5 py-1">
-                <item.icon
-                  className={`w-5 h-5 transition-colors ${isActive ? "text-gold" : "text-text-muted"}`}
-                />
-                <span className={`text-[10px] font-medium ${isActive ? "text-gold" : "text-text-muted"}`}>
-                  {t(item.labelKey)}
-                </span>
-                {isActive && (
+            <Link key={item.href} href={item.href} className="relative outline-none">
+              <motion.div
+                className="flex flex-col items-center justify-center transition-all duration-300"
+                animate={{
+                  scale: isActive ? 1.2 : 1,
+                  y: isActive && isHome ? -4 : 0,
+                }}
+              >
+                <div
+                  className={`flex items-center justify-center transition-all duration-300 ${
+                    isHome && isActive
+                      ? "w-11 h-11 rounded-full bg-gold shadow-[0_0_20px_rgba(198,165,92,0.4)]"
+                      : isHome
+                      ? "w-11 h-11 rounded-full bg-white/5"
+                      : ""
+                  }`}
+                >
+                  <item.icon
+                    className={`transition-all duration-300 ${
+                      isActive
+                        ? isHome ? "text-deep-black w-5 h-5" : "text-gold w-6 h-6"
+                        : "text-text-muted hover:text-white w-5 h-5"
+                    }`}
+                  />
+                </div>
+                
+                {!isHome && (
                   <motion.div
-                    layoutId="mobileIndicator"
-                    className="w-4 h-[2px] rounded-full mt-0.5"
-                    style={{ background: "var(--gold)" }}
+                    initial={false}
+                    animate={{ opacity: isActive ? 1 : 0, y: isActive ? 4 : 8 }}
+                    className="absolute -bottom-4 h-1 w-1 rounded-full bg-gold"
                   />
                 )}
-              </div>
+              </motion.div>
             </Link>
           );
         })}
-
-        {/* Admin link */}
-        {user?.role === "admin" && (
-          <Link href="/admin" className="flex-1">
-            <div className="flex flex-col items-center gap-0.5 py-1">
-              <LayoutDashboard className={`w-5 h-5 transition-colors ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`} />
-              <span className={`text-[10px] font-medium ${pathname?.startsWith("/admin") ? "text-gold" : "text-text-muted"}`}>
-                Admin
-              </span>
-            </div>
-          </Link>
-        )}
-
-        {/* Search */}
-        <Link href="/search" className="flex-1">
-          <div className="flex flex-col items-center gap-0.5 py-1">
-            <Search className={`w-5 h-5 transition-colors ${pathname === "/search" ? "text-gold" : "text-text-muted"}`} />
-            <span className={`text-[10px] font-medium ${pathname === "/search" ? "text-gold" : "text-text-muted"}`}>
-              Recherche
-            </span>
-          </div>
-        </Link>
-
-        {/* Account */}
-        {user ? (
-          <Link href="/settings" className="flex-1">
-            <div className="flex flex-col items-center gap-0.5 py-1">
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black"
-                style={{ background: "var(--gold-glow)", color: "var(--gold)", border: "1px solid var(--gold)" }}
-              >
-                {user.username[0]?.toUpperCase()}
-              </div>
-              <span className="text-[10px] font-medium text-text-muted">Compte</span>
-            </div>
-          </Link>
-        ) : (
-          <Link href="/login" className="flex-1">
-            <div className="flex flex-col items-center gap-0.5 py-1">
-              <LogIn className="w-5 h-5 text-text-muted" />
-              <span className="text-[10px] font-medium text-text-muted">Connexion</span>
-            </div>
-          </Link>
-        )}
       </nav>
     </>
   );

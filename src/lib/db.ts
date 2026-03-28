@@ -480,21 +480,52 @@ export async function updateMediaItem(
   });
 
   if (updates.seasons) {
-    // Delete existing seasons to recreate cleanly
-    await prisma.season.deleteMany({ where: { mediaId: id } });
-    updatePayload.seasons = {
-      create: updates.seasons.map(s => ({
-        number: s.number,
-        episodes: {
-          create: s.episodes.map(e => ({
-            number: e.number,
-            title: e.title,
-            streamUrl: e.streamUrl,
-            runtime: e.runtime
-          }))
+    // Use a transaction to ensure old seasons/episodes are fully deleted
+    // BEFORE creating new ones (avoids unique constraint P2002 errors)
+    const seasonsData = updates.seasons.map(s => ({
+      number: s.number,
+      episodes: {
+        create: s.episodes.map(e => ({
+          number: e.number,
+          title: e.title,
+          streamUrl: e.streamUrl,
+          runtime: e.runtime,
+          imageUrl: (e as any).imageUrl,
+          overview: (e as any).overview,
+        }))
+      }
+    }));
+
+    try {
+      // Step 1: Delete all existing episodes, then seasons (in transaction)
+      const existingSeasons = await prisma.season.findMany({
+        where: { mediaId: id },
+        select: { id: true }
+      });
+      const seasonIds = existingSeasons.map(s => s.id);
+
+      await prisma.$transaction([
+        prisma.episode.deleteMany({ where: { seasonId: { in: seasonIds } } }),
+        prisma.season.deleteMany({ where: { mediaId: id } }),
+      ]);
+
+      // Step 2: Update the media with new seasons
+      updatePayload.seasons = { create: seasonsData };
+
+      const updated = await prisma.media.update({
+        where: { id },
+        data: updatePayload,
+        include: {
+          seasons: {
+            include: { episodes: true }
+          }
         }
-      }))
-    };
+      });
+      return mapPrismaMedia(updated);
+    } catch (err) {
+      console.error("Failed to update media item (with seasons)", err);
+      return null;
+    }
   }
 
   try {
@@ -557,10 +588,15 @@ export interface WatchProgress {
   position: number; // seconds
   duration: number; // seconds
   updatedAt: string;
+  backdropUrl?: string; // Added for dynamic background
 }
 
 export async function getWatchProgressForUser(userId: string): Promise<WatchProgress[]> {
-  const p = await prisma.progress.findMany({ where: { userId } });
+  const p = await prisma.progress.findMany({ 
+    where: { userId },
+    include: { media: true },
+    orderBy: { updatedAt: "desc" }
+  });
   return p.map(item => ({
     userId: item.userId,
     mediaId: item.mediaId,
@@ -569,6 +605,7 @@ export async function getWatchProgressForUser(userId: string): Promise<WatchProg
     position: item.progress,
     duration: item.duration,
     updatedAt: item.updatedAt.toISOString(),
+    backdropUrl: item.media?.backdropUrl || undefined,
   }));
 }
 

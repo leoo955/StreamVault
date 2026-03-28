@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useUser } from "@/lib/userProvider";
 
 // ============================================================
 // Translation dictionaries
@@ -311,20 +312,14 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState("fr");
-  const [loaded, setLoaded] = useState(false);
+  const { user, loading } = useUser();
 
-  // Load language from user preferences
+  // Load language from user preferences (via centralized UserProvider)
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.user?.preferences?.language) {
-          setLangState(d.user.preferences.language);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, []);
+    if (!loading && user?.preferences?.language) {
+      setLangState(user.preferences.language);
+    }
+  }, [user, loading]);
 
   const setLang = useCallback((l: string) => {
     setLangState(l);
@@ -336,8 +331,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     },
     [lang]
   );
-
-  if (!loaded) return null; // Don't render until language is loaded
 
   return (
     <I18nContext.Provider value={{ lang, setLang, t }}>

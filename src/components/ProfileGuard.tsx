@@ -1,17 +1,14 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
-// Module-level auth cache — persists across route changes within the same session
-let authCache: { user: any; checkedAt: number } | null = null;
-const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+import { useUser } from "@/lib/userProvider";
 
 export default function ProfileGuard({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const checkedRef = useRef(false);
+  const { user, loading } = useUser();
 
   useEffect(() => {
     // Public routes — no auth needed
@@ -20,63 +17,34 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
       return;
     }
 
-    // Use cached auth if fresh enough
-    if (authCache && Date.now() - authCache.checkedAt < AUTH_CACHE_TTL) {
-      if (!authCache.user) {
-        router.push("/login");
-        return;
-      }
-      if (pathname.startsWith("/admin") || pathname === "/profiles") {
+    // Still loading user data
+    if (loading) return;
+
+    // Not logged in
+    if (!user) {
+      // Offline mode: allow access to downloads
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
         setReady(true);
         return;
       }
-      const profile = sessionStorage.getItem("activeProfile");
-      if (!profile) {
-        router.push("/profiles");
-      } else {
-        setReady(true);
-      }
+      router.push("/login");
       return;
     }
 
-    // First check or cache expired — fetch auth
-    if (checkedRef.current) return;
-    checkedRef.current = true;
+    // Admin & profile selection pages: skip profile check
+    if (pathname.startsWith("/admin") || pathname === "/profiles") {
+      setReady(true);
+      return;
+    }
 
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => {
-        authCache = { user: d.user || null, checkedAt: Date.now() };
-
-        if (!d.user) {
-          router.push("/login");
-          return;
-        }
-
-        if (pathname.startsWith("/admin") || pathname === "/profiles") {
-          setReady(true);
-          return;
-        }
-
-        const profile = sessionStorage.getItem("activeProfile");
-        if (!profile) {
-          router.push("/profiles");
-        } else {
-          setReady(true);
-        }
-      })
-      .catch(() => {
-        // If the fetch fails entirely because we are offline, allow the app to boot
-        // so the user can access their downloaded library without being logged out.
-        if (typeof navigator !== "undefined" && !navigator.onLine) {
-          setReady(true);
-          return;
-        }
-
-        authCache = null;
-        router.push("/login");
-      });
-  }, [pathname, router]);
+    // Check for active profile
+    const profile = sessionStorage.getItem("activeProfile");
+    if (!profile) {
+      router.push("/profiles");
+    } else {
+      setReady(true);
+    }
+  }, [pathname, router, user, loading]);
 
   if (!ready) {
     return (
@@ -89,8 +57,5 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
   return <>{children}</>;
 }
 
-// Export to invalidate cache on logout
-export function clearAuthCache() {
-  authCache = null;
-}
-
+// Export for backward compat
+export function clearAuthCache() {}

@@ -7,7 +7,12 @@ import Providers from "@/components/Providers";
 import SplashScreen from "@/components/SplashScreen";
 import ProfileGuard from "@/components/ProfileGuard";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import AnnouncementPopup from "@/components/AnnouncementPopup";
 import { Analytics } from "@vercel/analytics/react";
+
+import { ThemeProvider } from "@/lib/theme";
+import { PopupProvider } from "@/lib/popup";
+import { UserProvider } from "@/lib/userProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -44,13 +49,20 @@ export default function RootLayout({
       >
         <ServiceWorkerRegister />
         <SplashScreen />
-        <Providers>
-          <ProfileGuard>
-            <Sidebar />
-            <MainContent>{children}</MainContent>
-          </ProfileGuard>
-          <Analytics />
-        </Providers>
+        <ThemeProvider>
+          <UserProvider>
+            <PopupProvider>
+              <Providers>
+                <ProfileGuard>
+                  <Sidebar />
+                  <MainContent>{children}</MainContent>
+                </ProfileGuard>
+                <AnnouncementPopup />
+                <Analytics />
+              </Providers>
+            </PopupProvider>
+          </UserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

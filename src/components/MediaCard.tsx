@@ -68,7 +68,7 @@ export default function MediaCard({ item, index = 0 }: MediaCardProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "50px" }}
       transition={{ duration: 0.4 }}
-      className="group relative shrink-0 w-[160px] md:w-[220px]"
+      className="group relative shrink-0 w-[150px] md:w-[220px]"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

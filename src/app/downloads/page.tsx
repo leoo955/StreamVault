@@ -7,10 +7,12 @@ import { Play, Trash2, DownloadCloud, Film } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { usePlan } from "@/hooks/usePlan";
+import { usePopup } from "@/lib/popup";
 import { Crown, Stars, ShieldAlert } from "lucide-react";
 
 export default function DownloadsPage() {
   const { plan, loading: planLoading } = usePlan();
+  const { showConfirm, showSuccess } = usePopup();
   const [downloads, setDownloads] = useState<DownloadedMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const { t } = useI18n();
@@ -30,13 +32,19 @@ export default function DownloadsPage() {
     }
   };
 
-  const handleRemove = async (id: string, e: React.MouseEvent) => {
+  const handleRemove = async (id: string, title: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm("Supprimer définitivement ce téléchargement de votre appareil ?")) {
-      await deleteDownload(id);
-      loadDownloads();
-    }
+    showConfirm(
+      "Supprimer le téléchargement ?",
+      `"${title}" sera retiré de votre appareil. Vous pourrez le retélécharger plus tard.`,
+      async () => {
+        await deleteDownload(id);
+        loadDownloads();
+        showSuccess("Supprimé", "Le téléchargement a été supprimé.");
+      },
+      "Supprimer"
+    );
   };
 
   if (loading || planLoading) return <div className="p-8 pb-32">Chargement de la bibliothèque locale...</div>;
@@ -142,7 +150,7 @@ export default function DownloadsPage() {
                   <div className="mt-4 flex items-center justify-between">
                      <span className="text-[10px] uppercase font-black tracking-wider text-green-400 bg-green-400/10 px-2 py-1 rounded">Dispo. Hors-Ligne</span>
                      <button
-                       onClick={(e) => handleRemove(media.id, e)}
+                       onClick={(e) => handleRemove(media.id, media.title, e)}
                        className="p-2 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
                        title="Supprimer"
                      >

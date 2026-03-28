@@ -17,12 +17,9 @@ export async function GET(
     return NextResponse.json({ error: "Code invalide" }, { status: 404 });
   }
 
-  // Check usage
   if (invite.usedCount >= invite.maxUses) {
     return NextResponse.json({ error: "Code déjà utilisé au maximum" }, { status: 403 });
   }
-
-  // Check expiration
   if (invite.expiresAt && invite.expiresAt < new Date()) {
     return NextResponse.json({ error: "Code expiré" }, { status: 403 });
   }

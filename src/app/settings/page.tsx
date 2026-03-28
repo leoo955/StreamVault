@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Shield, Globe, Play, Lock, LogOut, Check, MonitorSmartphone, Crown } from "lucide-react";
+import { User, Shield, Globe, Play, Lock, LogOut, Check, MonitorSmartphone, Crown, Palette } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getPlanFeatures } from "@/lib/plans";
+import { useTheme, THEMES } from "@/lib/theme";
 
 interface UserData {
   id: string;
@@ -16,6 +17,7 @@ interface UserData {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { theme: currentTheme, setTheme } = useTheme();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -232,6 +234,32 @@ export default function SettingsPage() {
         <button onClick={savePreferences} disabled={saving} className="btn-gold mt-5 text-sm flex items-center gap-2 disabled:opacity-50">
           <Check className="w-4 h-4" />{saving ? "..." : "Sauvegarder"}
         </button>
+      </section>
+
+      {/* Theme Selector */}
+      <section className="glass-card p-6 mb-4">
+        <div className="flex items-center gap-3 mb-4">
+          <Palette className="w-5 h-5 text-gold" />
+          <h2 className="text-lg font-semibold">Thème</h2>
+        </div>
+        <p className="text-text-muted text-xs mb-4">Personnalisez l'apparence de StreamVault</p>
+        <div className="grid grid-cols-5 gap-3">
+          {THEMES.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTheme(t.id)}
+              className={`relative group/theme rounded-xl overflow-hidden transition-all duration-300 aspect-square ${currentTheme.id === t.id ? "ring-2 ring-offset-2 ring-offset-deep-black" : "hover:scale-105"}`}
+              style={{ background: t.preview, outlineColor: t.accent }}
+            >
+              {currentTheme.id === t.id && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <Check className="w-5 h-5" style={{ color: t.accent }} />
+                </div>
+              )}
+              <p className="absolute bottom-1 left-0 right-0 text-[8px] font-bold text-center text-white/80 drop-shadow-lg">{t.name}</p>
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* Device Pairing */}

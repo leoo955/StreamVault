@@ -62,7 +62,39 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 
+  const apiKey = process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY;
+
   try {
+    // 1. Try Official TMDB Search if API key exists
+    if (apiKey) {
+      const tmdbRes = await fetch(
+        `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&language=fr-FR&query=${encodeURIComponent(q)}&page=1&include_adult=false`,
+        { signal: AbortSignal.timeout(5000) }
+      );
+
+      if (tmdbRes.ok) {
+        const data = await tmdbRes.json();
+        const results = data.results
+          .filter((r: any) => r.media_type === "movie" || r.media_type === "tv")
+          .map((r: any) => ({
+            tmdbId: r.id,
+            title: r.title || r.name,
+            year: r.release_date ? r.release_date.split("-")[0] : r.first_air_date ? r.first_air_date.split("-")[0] : "",
+            overview: r.overview || "",
+            rating: Math.round((r.vote_average || 0) * 10) / 10,
+            posterUrl: r.poster_path ? `https://image.tmdb.org/t/p/w300${r.poster_path}` : "",
+            backdropUrl: r.backdrop_path ? `https://image.tmdb.org/t/p/original${r.backdrop_path}` : "",
+            runtime: 0, // Multi-search doesn't give runtime, but it's okay for search
+            genres: [], // Handled by detail page or further enrichment
+            country: "",
+            moviedbId: r.id
+          }));
+        
+        if (results.length > 0) return NextResponse.json({ results });
+      }
+    }
+
+    // 2. Fallback to Cinemeta
     const contentType = type === "tv" ? "series" : "movie";
     const url = `${CINEMETA}/catalog/${contentType}/top/search=${encodeURIComponent(q)}.json`;
 
@@ -77,7 +109,6 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     const metas = (data.metas || []).slice(0, 6);
 
-    // Fetch details for the first 3 results in parallel (for speed)
     const detailPromises = metas.slice(0, 3).map((item: any) =>
       getDetails(contentType, item.imdb_id || item.id)
     );

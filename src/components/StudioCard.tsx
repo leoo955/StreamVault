@@ -15,7 +15,7 @@ export default function StudioCard({ name, logoUrl, glowColor, background }: Stu
     <motion.div
       whileHover={{ scale: 1.05, y: -5 }}
       whileTap={{ scale: 0.98 }}
-      className="relative aspect-video w-[200px] md:w-[260px] rounded-2xl cursor-pointer overflow-hidden group shadow-2xl transition-all duration-300"
+      className="relative shrink-0 aspect-[1.8/1] w-[260px] md:w-[280px] rounded-2xl cursor-pointer overflow-hidden group shadow-2xl transition-all duration-300"
     >
       {/* Studio Specific Background */}
       <div 

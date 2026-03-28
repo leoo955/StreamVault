@@ -75,6 +75,14 @@ export default function VideoPlayer({
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showSkipIntro, setShowSkipIntro] = useState(false);
+  const [showResumeToast, setShowResumeToast] = useState(false);
+  const [resumeTimeLabel, setResumeTimeLabel] = useState("");
+  const [hlsLevels, setHlsLevels] = useState<{ height: number; bitrate: number }[]>([]);
+  const [currentQuality, setCurrentQuality] = useState(-1); // -1 = auto
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [showSkipRecap, setShowSkipRecap] = useState(false);
+  const [showEndCredits, setShowEndCredits] = useState(false);
+  const hlsRef = useRef<Hls | null>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
   const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
@@ -180,16 +188,40 @@ export default function VideoPlayer({
       });
       hls.loadSource(formattedUrl);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (startPosition > 0) video.currentTime = startPosition;
+      hlsRef.current = hls;
+      hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+        // Detect available quality levels
+        const levels = hls!.levels.map((l: any) => ({ height: l.height || 0, bitrate: l.bitrate || 0 }));
+        setHlsLevels(levels);
+        setCurrentQuality(-1); // auto
+        if (startPosition > 0) {
+          video.currentTime = startPosition;
+          // Show resume toast
+          const m = Math.floor(startPosition / 60);
+          const s = Math.floor(startPosition % 60);
+          setResumeTimeLabel(`${m}:${s.toString().padStart(2, "0")}`);
+          setShowResumeToast(true);
+          setTimeout(() => setShowResumeToast(false), 4000);
+        }
       });
     } else {
       video.src = streamUrl;
+      if (startPosition > 0) {
+        video.addEventListener("loadedmetadata", () => {
+          video.currentTime = startPosition;
+          const m = Math.floor(startPosition / 60);
+          const s = Math.floor(startPosition % 60);
+          setResumeTimeLabel(`${m}:${s.toString().padStart(2, "0")}`);
+          setShowResumeToast(true);
+          setTimeout(() => setShowResumeToast(false), 4000);
+        }, { once: true });
+      }
     }
 
     return () => {
       if (hls) {
         hls.destroy();
+        hlsRef.current = null;
       }
     };
   }, [streamUrl, startPosition]);
@@ -358,7 +390,7 @@ function parseVTTTime(timeStr: string): number {
     return () => clearInterval(interval);
   }, [showNextOverlay, nextEpisode]);
 
-  // Save watch progress every 10 seconds
+  // Save watch progress every 15 seconds (improved from 10s)
   useEffect(() => {
     const saveProgress = () => {
       const video = videoRef.current;
@@ -376,14 +408,12 @@ function parseVTTTime(timeStr: string): number {
       }).catch(() => {});
     };
 
-    const interval = setInterval(saveProgress, 10000);
+    const interval = setInterval(saveProgress, 15000);
 
-    // Also save on pause
     const video = videoRef.current;
     const onPauseSave = () => saveProgress();
     video?.addEventListener("pause", onPauseSave);
 
-    // Save before leaving
     const onBeforeUnload = () => saveProgress();
     window.addEventListener("beforeunload", onBeforeUnload);
 
@@ -391,9 +421,52 @@ function parseVTTTime(timeStr: string): number {
       clearInterval(interval);
       video?.removeEventListener("pause", onPauseSave);
       window.removeEventListener("beforeunload", onBeforeUnload);
-      saveProgress(); // Final save on unmount
+      saveProgress();
     };
   }, [itemId, seasonNum, episodeNum]);
+
+  // Skip Recap detection: show for first 90s of non-first episodes
+  useEffect(() => {
+    if (!seasonNum || !episodeNum || episodeNum <= 1) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const checkRecap = () => {
+      if (video.currentTime > 5 && video.currentTime < 90 && startPosition < 10) {
+        setShowSkipRecap(true);
+      } else {
+        setShowSkipRecap(false);
+      }
+    };
+    video.addEventListener("timeupdate", checkRecap);
+    return () => video.removeEventListener("timeupdate", checkRecap);
+  }, [seasonNum, episodeNum, startPosition]);
+
+  // End credits detection: show "Next Episode" when < 90s remaining for series
+  useEffect(() => {
+    if (!nextEpisode) return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const checkCredits = () => {
+      if (video.duration && video.duration - video.currentTime < 90 && video.duration > 120) {
+        setShowEndCredits(true);
+      } else {
+        setShowEndCredits(false);
+      }
+    };
+    video.addEventListener("timeupdate", checkCredits);
+    return () => video.removeEventListener("timeupdate", checkCredits);
+  }, [nextEpisode]);
+
+  // Quality switching function
+  const setQuality = useCallback((levelIndex: number) => {
+    if (hlsRef.current) {
+      hlsRef.current.currentLevel = levelIndex;
+      setCurrentQuality(levelIndex);
+    }
+    setShowQualityMenu(false);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -502,6 +575,66 @@ function parseVTTTime(timeStr: string): number {
             className="absolute inset-0 flex items-center justify-center"
           >
             <div className="w-14 h-14 border-4 border-gold/30 border-t-gold rounded-full animate-spin" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Resume Toast */}
+      <AnimatePresence>
+        {showResumeToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-20 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-2xl"
+            style={{ background: "rgba(10,10,10,0.9)", border: "1px solid var(--gold)", backdropFilter: "blur(12px)" }}
+          >
+            <p className="text-sm font-medium text-white">
+              ▶ Reprise à <span className="text-gold font-bold">{resumeTimeLabel}</span>
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Skip Recap Button */}
+      <AnimatePresence>
+        {showSkipRecap && (
+          <motion.button
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+            onClick={(e) => { e.stopPropagation(); seek(90); setShowSkipRecap(false); }}
+            className="absolute bottom-32 right-6 z-50 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl hover:scale-105 transition-transform"
+            style={{ background: "rgba(10,10,10,0.85)", border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}
+          >
+            Passer le résumé ⏭
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* End Credits — Next Episode */}
+      <AnimatePresence>
+        {showEndCredits && nextEpisode && !showNextOverlay && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            className="absolute bottom-32 right-6 z-50 w-72 rounded-2xl overflow-hidden shadow-2xl"
+            style={{ background: "rgba(10,10,10,0.95)", border: "1px solid rgba(255,255,255,0.1)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-2">Épisode suivant</p>
+              <p className="text-sm font-bold text-white mb-3 line-clamp-1">{nextEpisode.label}</p>
+              <button
+                onClick={() => nextEpisode.onPlay()}
+                className="w-full py-2.5 rounded-lg text-sm font-black flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform"
+                style={{ background: "var(--gold)", color: "var(--deep-black)" }}
+              >
+                <Play className="w-4 h-4" fill="currentColor" />
+                Lancer
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -925,6 +1058,49 @@ function parseVTTTime(timeStr: string): number {
                       {playbackSpeed === 1 ? <Gauge className="w-7 h-7 sm:w-7 sm:h-7" /> : `${playbackSpeed}x`}
                     </button>
                   </div>
+
+                  {/* Quality Selector */}
+                  {hlsLevels.length > 1 && (
+                    <div className="relative">
+                      {showQualityMenu && (
+                        <div className="absolute bottom-full right-0 mb-4 w-40 bg-surface border border-surface-light rounded-xl overflow-hidden shadow-2xl z-50">
+                          <div className="p-2 border-b border-surface-light bg-black/40">
+                            <p className="text-xs font-semibold text-text-secondary px-2">Qualité</p>
+                          </div>
+                          <div className="p-1 py-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setQuality(-1); }}
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-surface-light transition-colors ${
+                                currentQuality === -1 ? "text-gold font-medium" : "text-text-primary"
+                              }`}
+                            >
+                              Auto
+                            </button>
+                            {hlsLevels.map((level, i) => (
+                              <button
+                                key={i}
+                                onClick={(e) => { e.stopPropagation(); setQuality(i); }}
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-surface-light transition-colors ${
+                                  currentQuality === i ? "text-gold font-medium" : "text-text-primary"
+                                }`}
+                              >
+                                {level.height}p
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowQualityMenu(!showQualityMenu); setShowSpeedMenu(false); setShowSubMenu(false); }}
+                        className={`hover:text-gold transition-colors text-xs font-bold px-2 py-1 rounded ${
+                          currentQuality !== -1 ? "text-gold bg-gold/10" : ""
+                        }`}
+                        title="Qualité vidéo"
+                      >
+                        {currentQuality === -1 ? "HD" : `${hlsLevels[currentQuality]?.height}p`}
+                      </button>
+                    </div>
+                  )}
 
                   {/* Fullscreen Toggle */}
                   <button
