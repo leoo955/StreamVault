@@ -6,20 +6,12 @@ import { User, Shield, Globe, Play, Lock, LogOut, Check, MonitorSmartphone, Crow
 import { useRouter } from "next/navigation";
 import { getPlanFeatures } from "@/lib/plans";
 import { useTheme, THEMES } from "@/lib/theme";
-
-interface UserData {
-  id: string;
-  username: string;
-  role: "admin" | "user";
-  plan?: string;
-  preferences: { language: string; autoplay: boolean };
-}
+import { useUser } from "@/lib/userProvider";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { theme: currentTheme, setTheme } = useTheme();
-  const [user, setUser] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, refresh } = useUser();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -75,18 +67,12 @@ export default function SettingsPage() {
   }, [codeExpiresAt, pairingCode]);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.user) {
-          setUser(d.user);
-          setAutoplay(d.user.preferences?.autoplay ?? true);
-          setLanguage(d.user.preferences?.language ?? "fr");
-          fetchPairingCode();
-        }
-      })
-      .finally(() => setLoading(false));
-  }, []);
+    if (user) {
+      setAutoplay(user.preferences?.autoplay ?? true);
+      setLanguage(user.preferences?.language ?? "fr");
+      fetchPairingCode();
+    }
+  }, [user]);
 
   const savePreferences = async () => {
     setSaving(true); setError(""); setSuccess("");
@@ -96,7 +82,10 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preferences: { autoplay, language } }),
       });
-      if (res.ok) setSuccess("Préférences sauvegardées");
+      if (res.ok) {
+        setSuccess("Préférences sauvegardées");
+        refresh();
+      }
       else setError("Erreur de sauvegarde");
     } catch { setError("Erreur"); }
     finally { setSaving(false); }
