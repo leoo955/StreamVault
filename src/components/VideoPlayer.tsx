@@ -82,6 +82,9 @@ export default function VideoPlayer({
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [showSkipRecap, setShowSkipRecap] = useState(false);
   const [showEndCredits, setShowEndCredits] = useState(false);
+  const [audioTracks, setAudioTracks] = useState<{id: number, name: string, language: string}[]>([]);
+  const [currentAudioTrack, setCurrentAudioTrack] = useState<number>(-1);
+  const [showAudioMenu, setShowAudioMenu] = useState(false);
   const hlsRef = useRef<Hls | null>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
@@ -194,6 +197,18 @@ export default function VideoPlayer({
         const levels = hls!.levels.map((l: any) => ({ height: l.height || 0, bitrate: l.bitrate || 0 }));
         setHlsLevels(levels);
         setCurrentQuality(-1); // auto
+
+        // Detect available audio tracks
+        if (hls!.audioTracks && hls!.audioTracks.length > 1) {
+          const tracks = hls!.audioTracks.map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            language: t.lang || t.name
+          }));
+          setAudioTracks(tracks);
+          setCurrentAudioTrack(hls!.audioTrack);
+        }
+
         if (startPosition > 0) {
           video.currentTime = startPosition;
           // Show resume toast
@@ -466,6 +481,15 @@ function parseVTTTime(timeStr: string): number {
       setCurrentQuality(levelIndex);
     }
     setShowQualityMenu(false);
+  }, []);
+
+  // Audio track switching function
+  const setAudioTrack = useCallback((trackId: number) => {
+    if (hlsRef.current) {
+      hlsRef.current.audioTrack = trackId; // Switch seamlessly via hls.js
+      setCurrentAudioTrack(trackId);
+    }
+    setShowAudioMenu(false);
   }, []);
 
   // Keyboard shortcuts
@@ -955,6 +979,39 @@ function parseVTTTime(timeStr: string): number {
                       <span>Suivant</span>
                       <SkipForward className="w-6 h-6 sm:w-7 sm:h-7 group-hover/next:translate-x-0.5 transition-transform" />
                     </button>
+                  )}
+
+                  {/* Audio Tracks Menu */}
+                  {audioTracks.length > 1 && (
+                    <div className="relative">
+                      {showAudioMenu && (
+                        <div className="absolute bottom-full right-0 mb-4 w-48 bg-surface border border-surface-light rounded-xl overflow-hidden shadow-2xl z-50">
+                          <div className="p-2 border-b border-surface-light bg-black/40">
+                            <p className="text-xs font-semibold text-text-secondary px-2">Audio</p>
+                          </div>
+                          <div className="max-h-64 overflow-y-auto p-1 py-2 custom-scrollbar">
+                            {audioTracks.map((track) => (
+                              <button
+                                key={track.id}
+                                onClick={(e) => { e.stopPropagation(); setAudioTrack(track.id); }}
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-surface-light transition-colors ${currentAudioTrack === track.id ? "text-gold font-medium" : "text-text-primary"}`}
+                              >
+                                {track.name || track.language || `Piste ${track.id + 1}`}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowAudioMenu(!showAudioMenu); setShowSubMenu(false); setShowQualityMenu(false); setShowSpeedMenu(false); }}
+                        className={`hover:text-gold transition-colors relative flex items-center justify-center p-1 rounded-lg ${showAudioMenu ? "bg-white/10" : ""}`}
+                        title="Langue Audio"
+                      >
+                         <svg className="w-6 h-6 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                         </svg>
+                      </button>
+                    </div>
                   )}
 
                   {/* Subtitles Menu */}
