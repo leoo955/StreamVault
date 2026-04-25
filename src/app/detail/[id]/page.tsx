@@ -12,6 +12,7 @@ import StarRating from "@/components/StarRating";
 import DownloadButton from "@/components/DownloadButton";
 import ShareButton from "@/components/ShareButton";
 import { useImageColors } from "@/hooks/useImageColors";
+import SafeImage from "@/components/SafeImage";
 
 interface Episode {
   number: number;
@@ -55,6 +56,7 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
   const [similar, setSimilar] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedSeason, setExpandedSeason] = useState<number | null>(1);
+  const [showFullOverview, setShowFullOverview] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; role: string } | null>(null);
   const { t } = useI18n();
 
@@ -142,16 +144,21 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       }}
     >
       {/* Backdrop */}
-      <div className="relative h-[50vh] w-full">
-        {item.backdropUrl ? (
-          <img src={item.backdropUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${colors.muted} 0%, ${colors.darkMuted} 100%)` }} />
-        )}
+      <div className="relative h-[55vh] md:h-[65vh] w-full">
+        <SafeImage 
+          src={item.backdropUrl} 
+          alt="" 
+          className="w-full h-full object-cover" 
+          fallbackType="backdrop"
+          fill
+          priority
+        />
         {/* Dynamic gradient overlays */}
-        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${colors.darkMuted} 0%, transparent 60%)` }} />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${colors.darkMuted}CC 0%, transparent 40%)` }} />
-        <Link href="/" className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded-xl glass-card text-sm font-medium hover:bg-surface-hover transition-colors">
+        <div className="absolute inset-0" style={{ background: `linear-gradient(to top, var(--deep-black) 0%, transparent 60%)` }} />
+        <div className="absolute inset-0 hidden md:block" style={{ background: `linear-gradient(to right, var(--deep-black) 80%, transparent 100%)`, opacity: 0.8 }} />
+        <div className="absolute inset-0 bg-black/20" />
+        
+        <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-xl glass-card text-sm font-medium hover:bg-surface-hover transition-colors shadow-2xl">
           <ArrowLeft className="w-4 h-4" /> Retour
         </Link>
       </div>
@@ -159,25 +166,27 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
       {/* Content */}
       <div className="px-4 md:px-8 -mt-24 md:-mt-32 relative z-10">
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
-          {/* Poster with dynamic glow */}
           <div
-            className="w-40 h-60 md:w-56 md:h-80 mx-auto md:mx-0 rounded-2xl shrink-0 overflow-hidden shadow-2xl relative"
+            className="w-44 h-64 md:w-64 md:h-[24rem] mx-auto md:mx-0 rounded-2xl shrink-0 overflow-hidden shadow-2xl relative group/poster"
             style={{
               background: "var(--surface)",
-              boxShadow: `0 0 40px ${colors.dominant}40, 0 20px 60px rgba(0,0,0,0.8)`,
+              boxShadow: `0 30px 60px rgba(0,0,0,0.8)`,
               border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
-            {item.posterUrl ? (
-              <img src={item.posterUrl} alt={item.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-text-muted text-sm">Pas d&apos;image</div>
-            )}
+            <SafeImage 
+                src={item.posterUrl} 
+                alt={item.title} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover/poster:scale-110" 
+                fallbackType="poster"
+            />
           </div>
 
           <div className="flex-1 pt-4 md:pt-16 text-center md:text-left">
-            <h1 className="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight">{item.title}</h1>
-            {item.tagline && <p className="text-gold italic mb-3 text-sm md:text-base opacity-90 tracking-wide">&quot;{item.tagline}&quot;</p>}
+            <h1 className={`font-black mb-2 tracking-tighter uppercase italic leading-[0.9] ${item.title.length > 30 ? "text-3xl md:text-5xl" : "text-4xl md:text-7xl"}`}>
+                {item.title}
+            </h1>
+            {item.tagline && <p className="text-gold font-medium mb-4 text-base md:text-xl opacity-90 tracking-tight">&quot;{item.tagline}&quot;</p>}
             
             <div className="flex justify-center md:justify-start mb-6">
               <StarRating mediaId={id} />
@@ -222,9 +231,19 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
             )}
 
             {item.overview && (
-              <p className="text-text-secondary text-sm md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto md:mx-0 opacity-90">
-                {item.overview}
-              </p>
+              <div className="mb-8 max-w-3xl mx-auto md:mx-0">
+                <p className={`text-text-secondary text-base md:text-xl leading-relaxed opacity-80 ${!showFullOverview ? "line-clamp-3 md:line-clamp-4" : ""}`}>
+                  {item.overview}
+                </p>
+                {item.overview.length > 250 && (
+                  <button 
+                    onClick={() => setShowFullOverview(!showFullOverview)}
+                    className="mt-2 text-gold font-bold text-sm uppercase tracking-widest hover:text-gold-light transition-colors"
+                  >
+                    {showFullOverview ? "Réduire" : "Lire la suite"}
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Actions Row */}
@@ -311,17 +330,12 @@ export default function DetailPage({ params }: { params: Promise<{ id: string }>
                           >
                             {/* Thumbnail */}
                             <div className="relative w-full sm:w-48 md:w-56 shrink-0 aspect-video rounded-lg overflow-hidden" style={{ background: "var(--surface-light)" }}>
-                              {epImage ? (
-                                <img
+                               <SafeImage
                                   src={epImage}
                                   alt={ep.title || `Épisode ${ep.number}`}
                                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  fallbackType="backdrop"
                                 />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Film className="w-8 h-8 text-text-muted/30" />
-                                </div>
-                              )}
                               {/* Episode number badge */}
                               <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}>
                                 E{ep.number}

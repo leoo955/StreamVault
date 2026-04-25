@@ -32,7 +32,7 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
     }
 
     // Admin & profile selection pages: skip profile check
-    if (pathname.startsWith("/admin") || pathname === "/profiles") {
+    if (pathname.startsWith("/admin") || pathname.startsWith("/profiles")) {
       setReady(true);
       return;
     }

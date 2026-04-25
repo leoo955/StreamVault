@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Clock, CheckCircle2, XCircle, Trash2, LayoutGrid, List } from "lucide-react";
+import { Search, Plus, Clock, CheckCircle2, XCircle, Trash2, List } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
-import Sidebar from "@/components/Sidebar";
 
 interface MediaRequest {
   id: string;
@@ -102,8 +101,7 @@ export default function RequestsPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#050505] text-white">
-      <Sidebar />
+    <div className="min-h-screen bg-[#050505] text-white">
       <main className="flex-1 p-8 pt-24 overflow-y-auto">
         <div className="max-w-5xl mx-auto">
           <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">

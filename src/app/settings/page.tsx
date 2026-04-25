@@ -11,7 +11,7 @@ import { useUser } from "@/lib/userProvider";
 export default function SettingsPage() {
   const router = useRouter();
   const { theme: currentTheme, setTheme } = useTheme();
-  const { user, loading, refresh } = useUser();
+  const { user, loading, refresh, setUser } = useUser();
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -110,6 +110,7 @@ export default function SettingsPage() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
     router.push("/login");
     router.refresh();
   };

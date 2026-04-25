@@ -21,7 +21,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { useUser, clearUserCache } from "@/lib/userProvider";
+import { useUser } from "@/lib/userProvider";
 
 import NotificationBell from "./NotificationBell";
 import PwaInstallButton from "./PwaInstallButton";
@@ -41,7 +41,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
-  const { user: userData } = useUser();
+  const { user: userData, setUser } = useUser();
   const user = userData as UserData | null;
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -69,7 +69,7 @@ export default function Sidebar() {
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    clearUserCache();
+    setUser(null);
     setShowUserMenu(false);
     router.push("/login");
   };

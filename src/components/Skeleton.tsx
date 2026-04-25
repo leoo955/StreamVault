@@ -1,6 +1,6 @@
 export function CardSkeleton() {
   return (
-    <div className="shrink-0" style={{ width: 200 }}>
+    <div className="shrink-0 w-[150px] md:w-[220px]">
       <div className="skeleton aspect-[2/3] rounded-xl" />
       <div className="mt-3 px-1 space-y-2">
         <div className="skeleton h-4 w-3/4 rounded" />

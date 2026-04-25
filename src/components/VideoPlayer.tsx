@@ -19,6 +19,8 @@ import {
   X,
   Gauge,
   PictureInPicture,
+  Languages,
+  Tv,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -140,9 +142,28 @@ export default function VideoPlayer({
 
   const toggleMute = useCallback(() => {
     if (!videoRef.current) return;
-    videoRef.current.muted = !videoRef.current.muted;
-    setIsMuted(!isMuted);
-  }, [isMuted]);
+    const newMuted = !videoRef.current.muted;
+    videoRef.current.muted = newMuted;
+    setIsMuted(newMuted);
+    if (!newMuted && videoRef.current.volume === 0) {
+      videoRef.current.volume = 1;
+      setVolume(1);
+    }
+  }, []);
+
+  const changeVolume = useCallback((newVol: number) => {
+    if (!videoRef.current) return;
+    const clamped = Math.max(0, Math.min(1, newVol));
+    videoRef.current.volume = clamped;
+    setVolume(clamped);
+    if (clamped === 0) {
+      videoRef.current.muted = true;
+      setIsMuted(true);
+    } else if (videoRef.current.muted) {
+      videoRef.current.muted = false;
+      setIsMuted(false);
+    }
+  }, []);
 
   const seek = useCallback((time: number) => {
     if (!videoRef.current) return;
@@ -155,11 +176,41 @@ export default function VideoPlayer({
   }, []);
 
   const toggleFullscreen = useCallback(async () => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !videoRef.current) return;
+    
+    // iOS/iPhone special handling: container fullscreen often fails, use video element directly
+    if (!document.fullscreenEnabled && (videoRef.current as any).webkitEnterFullscreen) {
+      (videoRef.current as any).webkitEnterFullscreen();
+      return;
+    }
+
     if (!document.fullscreenElement) {
-      await containerRef.current.requestFullscreen();
+      if (containerRef.current.requestFullscreen) {
+        await containerRef.current.requestFullscreen();
+      } else if ((containerRef.current as any).webkitRequestFullscreen) {
+        await (containerRef.current as any).webkitRequestFullscreen();
+      }
     } else {
-      await document.exitFullscreen();
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        await (document as any).webkitExitFullscreen();
+      }
+    }
+  }, []);
+
+  const toggleCast = useCallback(() => {
+    if (!videoRef.current) return;
+    
+    // Remote Playback API (Modern browsers)
+    if ((videoRef.current as any).remote && (videoRef.current as any).remote.prompt) {
+      (videoRef.current as any).remote.prompt();
+    } 
+    // AirPlay legacy API
+    else if ((window as any).WebKitPlaybackTargetAvailabilityEvent) {
+      (videoRef.current as any).webkitShowPlaybackTargetPicker();
+    } else {
+      alert("Casting non supporté sur ce navigateur.");
     }
   }, []);
 
@@ -193,25 +244,49 @@ export default function VideoPlayer({
       hls.attachMedia(video);
       hlsRef.current = hls;
       hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
-        // Detect available quality levels
         const levels = hls!.levels.map((l: any) => ({ height: l.height || 0, bitrate: l.bitrate || 0 }));
         setHlsLevels(levels);
-        setCurrentQuality(-1); // auto
 
-        // Detect available audio tracks
-        if (hls!.audioTracks && hls!.audioTracks.length > 1) {
+        // Restore saved quality preference
+        const savedQuality = localStorage.getItem('sv-preferred-quality');
+        if (savedQuality && savedQuality !== '-1') {
+          const idx = levels.findIndex((l: any) => l.height === parseInt(savedQuality));
+          if (idx >= 0) {
+            hls!.currentLevel = idx;
+            setCurrentQuality(idx);
+          } else {
+            setCurrentQuality(-1);
+          }
+        } else {
+          setCurrentQuality(-1);
+        }
+
+        // Detect audio tracks
+        if (hls!.audioTracks && hls!.audioTracks.length >= 1) {
           const tracks = hls!.audioTracks.map((t: any) => ({
             id: t.id,
-            name: t.name,
-            language: t.lang || t.name
+            name: t.name || (t.lang === 'fr' ? 'Français (VF)' : t.lang === 'en' ? 'English (VO)' : t.lang || `Piste ${t.id + 1}`),
+            language: t.lang || t.name || 'default'
           }));
           setAudioTracks(tracks);
-          setCurrentAudioTrack(hls!.audioTrack);
+
+          // Restore saved audio preference
+          const savedLang = localStorage.getItem('sv-preferred-audio-lang');
+          if (savedLang) {
+            const match = tracks.find((t: any) => t.language === savedLang);
+            if (match) {
+              hls!.audioTrack = match.id;
+              setCurrentAudioTrack(match.id);
+            } else {
+              setCurrentAudioTrack(hls!.audioTrack);
+            }
+          } else {
+            setCurrentAudioTrack(hls!.audioTrack);
+          }
         }
 
         if (startPosition > 0) {
           video.currentTime = startPosition;
-          // Show resume toast
           const m = Math.floor(startPosition / 60);
           const s = Math.floor(startPosition % 60);
           setResumeTimeLabel(`${m}:${s.toString().padStart(2, "0")}`);
@@ -474,20 +549,24 @@ function parseVTTTime(timeStr: string): number {
     return () => video.removeEventListener("timeupdate", checkCredits);
   }, [nextEpisode]);
 
-  // Quality switching function
   const setQuality = useCallback((levelIndex: number) => {
     if (hlsRef.current) {
       hlsRef.current.currentLevel = levelIndex;
       setCurrentQuality(levelIndex);
+      const height = levelIndex >= 0 ? hlsRef.current.levels[levelIndex]?.height : -1;
+      localStorage.setItem('sv-preferred-quality', String(height || -1));
     }
     setShowQualityMenu(false);
   }, []);
 
-  // Audio track switching function
-  const setAudioTrack = useCallback((trackId: number) => {
+  const switchAudioTrack = useCallback((trackId: number) => {
     if (hlsRef.current) {
-      hlsRef.current.audioTrack = trackId; // Switch seamlessly via hls.js
+      hlsRef.current.audioTrack = trackId;
       setCurrentAudioTrack(trackId);
+      const track = hlsRef.current.audioTracks.find((t: any) => t.id === trackId);
+      if (track) {
+        localStorage.setItem('sv-preferred-audio-lang', track.lang || track.name || 'default');
+      }
     }
     setShowAudioMenu(false);
   }, []);
@@ -950,16 +1029,30 @@ function parseVTTTime(timeStr: string): number {
                   </button>
 
                   {/* Volume */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleMute(); handleMouseMove(); }}
-                    className="hover:text-gold transition-colors"
-                  >
-                    {isMuted || volume === 0 ? (
-                      <VolumeX className="w-7 h-7 sm:w-7 sm:h-7" />
-                    ) : (
-                      <Volume2 className="w-7 h-7 sm:w-7 sm:h-7" />
-                    )}
-                  </button>
+                  <div className="group/vol flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleMute(); handleMouseMove(); }}
+                      className="hover:text-gold transition-colors"
+                    >
+                      {isMuted || volume === 0 ? (
+                        <VolumeX className="w-7 h-7 sm:w-7 sm:h-7" />
+                      ) : (
+                        <Volume2 className="w-7 h-7 sm:w-7 sm:h-7" />
+                      )}
+                    </button>
+                    <div className="w-0 group-hover/vol:w-20 overflow-hidden transition-all duration-300 hidden md:block">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) => { changeVolume(parseFloat(e.target.value)); handleMouseMove(); }}
+                        className="w-20 h-1 appearance-none bg-white/20 rounded-full cursor-pointer accent-gold"
+                        style={{ accentColor: "var(--gold)" }}
+                      />
+                    </div>
+                  </div>
 
                   {/* Time */}
                   <span className="text-xs sm:text-sm text-text-secondary font-mono">
@@ -981,38 +1074,48 @@ function parseVTTTime(timeStr: string): number {
                     </button>
                   )}
 
-                  {/* Audio Tracks Menu */}
-                  {audioTracks.length > 1 && (
-                    <div className="relative">
-                      {showAudioMenu && (
-                        <div className="absolute bottom-full right-0 mb-4 w-48 bg-surface border border-surface-light rounded-xl overflow-hidden shadow-2xl z-50">
-                          <div className="p-2 border-b border-surface-light bg-black/40">
-                            <p className="text-xs font-semibold text-text-secondary px-2">Audio</p>
-                          </div>
-                          <div className="max-h-64 overflow-y-auto p-1 py-2 custom-scrollbar">
-                            {audioTracks.map((track) => (
+                  {/* Audio Tracks Menu — always visible */}
+                  <div className="relative">
+                    {showAudioMenu && (
+                      <div className="absolute bottom-full right-0 mb-4 w-52 bg-surface border border-surface-light rounded-xl overflow-hidden shadow-2xl z-[60]" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-2.5 border-b border-surface-light bg-black/40">
+                          <p className="text-xs font-bold text-gold px-2">🔊 Langue Audio</p>
+                        </div>
+                        <div className="max-h-64 overflow-y-auto p-1.5 py-2 custom-scrollbar">
+                          {audioTracks.length > 1 ? (
+                            audioTracks.map((track) => (
                               <button
                                 key={track.id}
-                                onClick={(e) => { e.stopPropagation(); setAudioTrack(track.id); }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-surface-light transition-colors ${currentAudioTrack === track.id ? "text-gold font-medium" : "text-text-primary"}`}
+                                onClick={(e) => { e.stopPropagation(); switchAudioTrack(track.id); }}
+                                className={`w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-surface-light transition-colors flex items-center gap-2 ${currentAudioTrack === track.id ? "text-gold font-medium bg-gold/5" : "text-text-primary"}`}
                               >
-                                {track.name || track.language || `Piste ${track.id + 1}`}
+                                {currentAudioTrack === track.id && <span className="text-gold">✓</span>}
+                                <span>{track.name || track.language || `Piste ${track.id + 1}`}</span>
                               </button>
-                            ))}
-                          </div>
+                            ))
+                          ) : audioTracks.length === 1 ? (
+                            <div className="px-3 py-2.5 text-sm text-text-muted">
+                              <p className="font-medium text-gold">{audioTracks[0].name}</p>
+                              <p className="text-[10px] mt-0.5">Piste unique détectée</p>
+                            </div>
+                          ) : (
+                            <div className="px-3 py-2.5 text-sm text-text-muted">
+                              <p className="font-medium">Piste par défaut</p>
+                              <p className="text-[10px] mt-1 leading-relaxed">Ce flux n'a pas de pistes audio séparées.<br/>Un master playlist HLS avec EXT-X-MEDIA est nécessaire.</p>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShowAudioMenu(!showAudioMenu); setShowSubMenu(false); setShowQualityMenu(false); setShowSpeedMenu(false); }}
-                        className={`hover:text-gold transition-colors relative flex items-center justify-center p-1 rounded-lg ${showAudioMenu ? "bg-white/10" : ""}`}
-                        title="Langue Audio"
-                      >
-                         <svg className="w-6 h-6 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                         </svg>
-                      </button>
-                    </div>
-                  )}
+                      </div>
+                    )}
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAudioMenu(prev => !prev); setShowSubMenu(false); setShowQualityMenu(false); setShowSpeedMenu(false); }}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border ${showAudioMenu ? "bg-gold/20 text-gold border-gold/40" : "bg-white/10 text-white border-white/10 hover:bg-white/20 hover:text-gold hover:border-gold/30"}`}
+                      title="Langue Audio (VO/VF)"
+                    >
+                      <Languages className="w-5 h-5" />
+                      <span className="hidden sm:inline">VO/VF</span>
+                    </button>
+                  </div>
 
                   {/* Subtitles Menu */}
                   {subtitles.length > 0 && (
@@ -1170,6 +1273,15 @@ function parseVTTTime(timeStr: string): number {
                     ) : (
                       <Maximize className="w-7 h-7 sm:w-7 sm:h-7" />
                     )}
+                  </button>
+
+                  {/* Cast to TV */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleCast(); }}
+                    className="hover:text-gold transition-colors"
+                    title="Caster sur la TV"
+                  >
+                    <Tv className="w-7 h-7 sm:w-7 sm:h-7" />
                   </button>
 
                   {/* Picture in Picture */}

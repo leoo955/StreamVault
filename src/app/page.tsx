@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shuffle, Play, Info, ChevronRight, TrendingUp, Clock, Sparkles, Film, Tv, Plus } from "lucide-react";
+import { Play, Sparkles, Film, Plus, LayoutDashboard } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,6 +12,7 @@ import StudioRow from "@/components/StudioRow";
 import TrendingRow from "@/components/TrendingRow";
 import { HeroSkeleton, RowSkeleton } from "@/components/Skeleton";
 import { useI18n } from "@/lib/i18n";
+import { useUser } from "@/lib/userProvider";
 import { MediaItemSummary } from "@/lib/db";
 import { useInView } from "react-intersection-observer";
 
@@ -62,6 +63,7 @@ export default function HomePage() {
   const [trending, setTrending] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const { t } = useI18n();
+  const { user, isAdmin } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -378,20 +380,32 @@ export default function HomePage() {
         {!loading && items.length === 0 && (
           <div className="text-center py-24 bg-surface/30 rounded-[3rem] border border-white/5 mx-auto max-w-4xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gold/5 blur-2xl" />
-            <div className="relative z-10">
+            <div className="relative z-10 p-6">
               <Film className="w-16 h-16 text-white/10 mx-auto mb-6" />
-              <p className="text-text-muted text-xl mb-8 font-medium">{t("home.emptyLibrary")}</p>
+              <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tighter uppercase italic">Votre cinéma se prépare...</h2>
+              <p className="text-text-muted text-lg mb-10 font-medium max-w-md mx-auto leading-relaxed">
+                {isAdmin 
+                  ? "Bienvenue ! En tant qu'administrateur, vous pouvez commencer à ajouter des films et séries depuis votre tableau de bord."
+                  : "Notre catalogue est en cours de mise à jour. Profitez-en pour nous demander d'ajouter vos contenus préférés !"}
+              </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/requests">
-                  <button className="btn-gold px-8 py-3.5 flex items-center gap-2 font-bold">
-                    <Plus className="w-5 h-5" /> Demander un film
-                  </button>
-                </Link>
-                {/* Fallback to admin if user is admin */}
-                <Link href="/admin">
-                  <button className="px-8 py-3.5 rounded-xl border border-white/10 hover:bg-white/5 transition-all font-bold">
-                    Aller au dashboard
-                  </button>
+                {isAdmin ? (
+                   <Link href="/admin">
+                    <button className="btn-gold px-10 py-4 flex items-center gap-3 font-black uppercase tracking-widest shadow-xl shadow-gold/20">
+                      <LayoutDashboard className="w-5 h-5" /> Gérer le catalogue
+                    </button>
+                  </Link>
+                ) : (
+                  <Link href="/requests">
+                    <button className="btn-gold px-10 py-4 flex items-center gap-3 font-black uppercase tracking-widest shadow-xl shadow-gold/20">
+                      <Plus className="w-5 h-5" /> Faire une demande
+                    </button>
+                  </Link>
+                )}
+                <Link href="/search">
+                   <button className="px-8 py-4 rounded-xl border border-white/10 hover:bg-white/5 transition-all font-bold text-sm">
+                      Explorer quand même
+                   </button>
                 </Link>
               </div>
             </div>

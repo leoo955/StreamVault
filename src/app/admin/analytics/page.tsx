@@ -9,11 +9,8 @@ import {
   Users,
   Clock,
   Star,
-  MessageSquare,
   TrendingUp,
   MonitorPlay,
-  Tv,
-  Clapperboard,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {

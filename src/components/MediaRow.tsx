@@ -4,7 +4,8 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import MediaCard, { MediaCardSkeleton } from "./MediaCard";
+import MediaCard from "./MediaCard";
+import { CardSkeleton } from "./Skeleton";
 import { NormalizedMediaItem } from "@/lib/jellyfin/types";
 
 interface MediaRowProps {
@@ -97,7 +98,7 @@ export default function MediaRow({ title, items, loading, href, bannerUrl }: Med
           className="flex overflow-x-auto gap-4 pt-4 pb-6 px-1 scrollbar-hide"
         >
           {loading
-            ? Array.from({ length: 6 }).map((_, i) => <MediaCardSkeleton key={i} />)
+            ? Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
             : items.map((item, i) => <MediaCard key={`${item.id}-${i}`} item={item} index={i} />)}
         </div>
       </div>

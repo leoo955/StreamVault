@@ -3,9 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Star } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-import { NormalizedMediaItem } from "@/lib/jellyfin/types";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { NormalizedMediaItem } from "@/lib/jellyfin/types";
+import SafeImage from "./SafeImage";
 
 interface MediaCardProps {
   item: NormalizedMediaItem;
@@ -85,12 +85,13 @@ export default function MediaCard({ item, index = 0 }: MediaCardProps) {
         >
           {/* Static Poster image */}
           <div className="absolute inset-0 bg-surface">
-            <Image
+            <SafeImage
               src={item.posterUrl}
               alt={item.title}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 160px, 220px"
+              fallbackType="poster"
             />
           </div>
 
@@ -165,9 +166,11 @@ export default function MediaCard({ item, index = 0 }: MediaCardProps) {
           />
         </motion.div>
 
-        {/* Title & Meta */}
         <div className="mt-3 px-1">
-          <h3 className="text-sm font-medium text-text-primary truncate group-hover:text-gold transition-colors duration-200">
+          <h3 
+            className="text-sm font-bold text-text-primary line-clamp-1 group-hover:text-gold transition-colors duration-200"
+            title={item.title}
+          >
             {item.title}
           </h3>
           <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
@@ -191,18 +194,5 @@ export default function MediaCard({ item, index = 0 }: MediaCardProps) {
         </div>
       </Link>
     </motion.div>
-  );
-}
-
-// Skeleton variant
-export function MediaCardSkeleton() {
-  return (
-    <div className="shrink-0 w-[160px] md:w-[220px]">
-      <div className="skeleton aspect-[2/3] rounded-xl" />
-      <div className="mt-3 px-1 space-y-2">
-        <div className="skeleton h-4 w-3/4 rounded" />
-        <div className="skeleton h-3 w-1/2 rounded" />
-      </div>
-    </div>
   );
 }

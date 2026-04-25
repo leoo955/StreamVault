@@ -64,7 +64,7 @@ export default function AnnouncementPopup() {
           if (unseen.length > 0) {
             setCurrent(unseen[0]);
             setQueue(unseen.slice(1));
-            markAsSeen(unseen[0].id); // Mark as seen immediately so reload doesn't show it again
+            // Removed: markAsSeen(unseen[0].id) — now moved to dismiss
           }
         })
         .catch(() => {});

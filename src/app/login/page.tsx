@@ -5,10 +5,11 @@ import { motion } from "framer-motion";
 import { Film, Eye, EyeOff, MonitorSmartphone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { clearAuthCache } from "@/components/ProfileGuard";
+import { useUser } from "@/lib/userProvider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setUser } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +34,7 @@ export default function LoginPage() {
         return;
       }
 
-      clearAuthCache();
+      setUser(data.user);
       router.push("/");
       router.refresh();
     } catch {

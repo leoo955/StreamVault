@@ -4,10 +4,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MonitorSmartphone, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { clearAuthCache } from "@/components/ProfileGuard";
+import { useUser } from "@/lib/userProvider";
 
 export default function PairPage() {
   const router = useRouter();
+  const { refresh } = useUser();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +34,7 @@ export default function PairPage() {
       }
 
       setSuccess(true);
-      clearAuthCache(); // Clear any unauthenticated cache
+      refresh(); // Force re-fetch of user data
       setTimeout(() => {
         router.push("/");
         router.refresh();

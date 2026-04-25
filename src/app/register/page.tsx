@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Film, Eye, EyeOff, CheckCircle2, AlertCircle, Stars } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { clearAuthCache } from "@/components/ProfileGuard";
+import { useUser } from "@/lib/userProvider";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setUser } = useUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -82,7 +83,8 @@ export default function RegisterPage() {
       });
 
       if (loginRes.ok) {
-        clearAuthCache();
+        const loginData = await loginRes.json();
+        setUser(loginData.user);
         router.push("/");
         router.refresh();
       }
