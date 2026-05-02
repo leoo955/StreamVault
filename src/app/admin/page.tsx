@@ -1,3 +1,5 @@
+"use client";
+
 import { LayoutDashboard, Film, Tv, Users, Ticket, Activity, TrendingUp } from 'lucide-react'
 import { motion } from 'framer-motion'
 
