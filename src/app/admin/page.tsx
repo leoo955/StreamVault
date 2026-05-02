@@ -1,24 +1,49 @@
 "use client";
 
-import { LayoutDashboard, Film, Tv, Users, Ticket, Activity, TrendingUp } from 'lucide-react'
+import { LayoutDashboard, Film, Tv, Users, Ticket, Activity, TrendingUp, Search } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [isGenerating, setIsGenerating] = useState(false)
+  const [data, setData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("/api/admin/stats");
+        if (res.ok) {
+          const json = await res.json();
+          setData(json);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const stats = [
-    { label: 'Utilisateurs', value: '12', icon: Users, trend: '+2 cette semaine' },
-    { label: 'Films', value: '148', icon: Film, trend: '+12 ce mois' },
-    { label: 'Séries', value: '42', icon: Tv, trend: '+3 ce mois' },
-    { label: 'Invitations', value: '5', icon: Ticket, trend: '8 disponibles' },
+    { label: 'Utilisateurs', value: data?.stats?.users || '0', icon: Users, trend: '+2 cette semaine' },
+    { label: 'Films', value: data?.stats?.movies || '0', icon: Film, trend: 'Catalogue total' },
+    { label: 'Séries', value: data?.stats?.series || '0', icon: Tv, trend: 'Collections actives' },
+    { label: 'Invitations', value: data?.stats?.invites || '0', icon: Ticket, trend: 'Codes disponibles' },
   ]
 
-  const recentActivity = [
-    { id: 1, action: 'Nouvel utilisateur', user: 'romain', time: 'il y a 2h', icon: Users },
-    { id: 2, action: 'Film ajouté', user: 'admin', details: 'Dune: Part Two', time: 'il y a 5h', icon: Film },
-    { id: 3, action: 'Invitation créée', user: 'admin', details: 'CODE-XYZ', time: 'il y a 1j', icon: Ticket },
-  ]
+  const formatTime = (date: string) => {
+    const d = new Date(date);
+    const now = new Date();
+    const diff = now.getTime() - d.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours < 1) return "à l'instant";
+    if (hours < 24) return `il y a ${hours}h`;
+    return `il y a ${Math.floor(hours / 24)}j`;
+  };
 
   return (
     <div className="space-y-16">
@@ -52,7 +77,7 @@ export default function AdminDashboard() {
             
             <div>
               <div className="text-4xl font-black font-display tracking-tighter text-white mb-2 italic">
-                {stat.value}
+                {isLoading ? "..." : stat.value}
               </div>
               <div className="font-sans font-bold uppercase tracking-[0.3em] text-[9px] text-white/30 group-hover:text-white/60 transition-colors duration-700">{stat.label}</div>
             </div>
@@ -77,11 +102,13 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex flex-col gap-4">
-            {recentActivity.map((item) => (
+            {isLoading ? (
+               <div className="py-20 text-center text-white/5 font-bold uppercase tracking-widest text-[9px]">Chargement des données...</div>
+            ) : data?.activities?.length > 0 ? data.activities.map((item: any) => (
               <div key={item.id} className="group p-5 rounded-2xl bg-white/[0.01] border border-white/[0.03] hover:border-white/10 flex items-center justify-between transition-all duration-700">
                 <div className="flex items-center gap-6">
                   <div className="w-10 h-10 rounded-xl bg-white/[0.02] flex items-center justify-center text-white/10 group-hover:text-white/40 transition-all duration-700">
-                    <item.icon size={18} />
+                    {item.type === 'media' ? <Film size={18} /> : item.type === 'invite' ? <Ticket size={18} /> : <Users size={18} />}
                   </div>
                   <div>
                     <div className="text-xs font-bold text-white/60 uppercase tracking-widest mb-1 group-hover:text-white transition-colors duration-700">{item.action}</div>
@@ -91,10 +118,12 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <div className="text-[9px] text-white/10 font-bold uppercase tracking-[0.2em] group-hover:text-white/20 transition-colors">
-                  {item.time}
+                  {formatTime(item.time)}
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="py-20 text-center text-white/5 font-bold uppercase tracking-widest text-[9px]">Aucune activité récente</div>
+            )}
           </div>
         </div>
 
@@ -127,6 +156,9 @@ export default function AdminDashboard() {
                   if (res.ok) {
                     const data = await res.json();
                     alert(`Code généré : ${data.code}`);
+                    // Re-fetch to update stats
+                    const statsRes = await fetch("/api/admin/stats");
+                    if (statsRes.ok) setData(await statsRes.json());
                   } else {
                     alert("Erreur lors de la génération");
                   }
