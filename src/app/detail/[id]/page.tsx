@@ -45,7 +45,7 @@ export default function DetailPage() {
                 id: m.id,
                 title: m.title,
                 poster: getTmdbImage(m.posterPath, "w500"),
-                color: "#EAB308",
+                color: "", // Dynamically extracted by MediaRow/Card
               }));
             setSuggestions(filtered);
           }
@@ -64,8 +64,8 @@ export default function DetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-deep-black">
-        <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-accent animate-spin"></div>
+      <div className="min-h-screen w-full flex items-center justify-center bg-black">
+        <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-white animate-spin"></div>
       </div>
     );
   }
@@ -73,7 +73,7 @@ export default function DetailPage() {
   if (!media) return null;
 
   return (
-    <div className="flex flex-col w-full bg-deep-black min-h-screen" style={{ '--accent': accentColor } as React.CSSProperties}>
+    <div className="flex flex-col w-full bg-black min-h-screen selection:bg-white selection:text-black" style={{ '--accent': accentColor } as React.CSSProperties}>
       
       {/* ━━ Immersive Hero Backdrop ━━ */}
       <section className="relative h-[85vh] w-full flex flex-col justify-end overflow-hidden">
@@ -86,8 +86,8 @@ export default function DetailPage() {
         />
         
         {/* Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-deep-black via-deep-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-deep-black/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
         
         {/* Content Overlay */}
         <div className="relative z-10 px-8 md:px-12 lg:px-20 pb-20 max-w-5xl">
@@ -97,96 +97,99 @@ export default function DetailPage() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Meta */}
-            <div className="flex items-center gap-4 mb-6">
-              <span className="px-2 py-1 rounded bg-white/10 backdrop-blur-md text-[10px] font-black tracking-widest text-white border border-white/10 uppercase">
-                4K HDR
+            <div className="flex items-center gap-6 mb-8">
+              <span className="px-3 py-1.5 rounded-md bg-white/5 backdrop-blur-xl text-[9px] font-black tracking-[0.2em] text-white/80 border border-white/10 uppercase">
+                4K HDR · ULTRA VISION
               </span>
-              <div className="flex items-center gap-2 text-white/60 text-xs font-bold uppercase tracking-widest">
-                <Star size={14} className="text-accent" fill="currentColor" />
-                <span>{media.voteAverage?.toFixed(1) || "0.0"}</span>
-                <span className="text-white/20">·</span>
+              <div className="flex items-center gap-4 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">
+                <div className="flex items-center gap-2">
+                  <Star size={12} className="text-accent" fill="currentColor" />
+                  <span className="text-white/80">{media.voteAverage?.toFixed(1) || "0.0"}</span>
+                </div>
+                <span className="w-1 h-1 rounded-full bg-white/10" />
                 <span>{getYear(media.releaseDate)}</span>
-                <span className="text-white/20">·</span>
+                <span className="w-1 h-1 rounded-full bg-white/10" />
                 <span>{formatRuntime(media.runtime)}</span>
               </div>
             </div>
 
             {/* Title */}
-            <h1 className="title-hero text-6xl md:text-8xl lg:text-9xl mb-4">
+            <h1 className="font-display font-black italic uppercase text-6xl md:text-8xl lg:text-9xl mb-6 tracking-tighter text-white">
               {media.title}
             </h1>
             
             {/* Tagline / Genres */}
-            <p className="text-accent font-display italic text-lg md:text-xl mb-8 tracking-wide">
+            <p className="text-accent font-display font-medium italic text-xl md:text-2xl mb-12 tracking-wide opacity-80">
               {media.genres?.join(" · ")}
             </p>
 
             {/* Actions */}
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-5">
               <button 
                 onClick={() => router.push(`/watch/${media.id}`)}
-                className="btn-primary h-14 px-10"
+                className="bg-white text-black h-16 px-12 rounded-2xl flex items-center gap-4 font-sans font-black uppercase tracking-[0.2em] text-xs hover:scale-105 active:scale-95 transition-all duration-500 shadow-[0_0_40px_rgba(255,255,255,0.2)]"
+                style={{ backgroundColor: accentColor, color: '#000' }}
               >
                 <Play size={20} fill="currentColor" />
-                <span>REGARDER MAINTENANT</span>
+                <span>Lecture</span>
               </button>
               
-              <button className="btn-glass h-14 w-14 p-0 flex items-center justify-center">
+              <button className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white hover:bg-white/[0.08] transition-all duration-500 active:scale-95">
                 <Plus size={24} />
               </button>
 
-              <ShareButton title={media.title} className="h-14 px-6" />
-              <DownloadButton mediaId={media.id} title={media.title} className="h-14 px-6" isPremium={true} />
+              <ShareButton title={media.title} className="h-16 px-8 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.08]" />
+              <DownloadButton mediaId={media.id} title={media.title} className="h-16 px-8 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.08]" isPremium={true} />
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ━━ Details Section ━━ */}
-      <section className="px-8 md:px-12 lg:px-20 py-20 grid grid-cols-1 lg:grid-cols-3 gap-20">
+      <section className="px-8 md:px-12 lg:px-20 py-32 grid grid-cols-1 lg:grid-cols-3 gap-24">
         
         {/* Left Column: Info */}
-        <div className="lg:col-span-2 space-y-12">
-          <div>
-            <h3 className="label-refined mb-6 text-white">Synopsis</h3>
-            <p className="text-white/70 text-lg leading-relaxed max-w-3xl">
+        <div className="lg:col-span-2 space-y-20">
+          <div className="space-y-8">
+            <h3 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/20">Synopsis</h3>
+            <p className="text-white/60 text-xl md:text-2xl leading-relaxed font-light tracking-tight max-w-4xl">
               {media.description || "Aucun synopsis disponible."}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
             {media.studios?.length > 0 && (
-              <div>
-                <h4 className="label-refined mb-3">Studios</h4>
-                <div className="flex flex-wrap gap-2">
+              <div className="space-y-6">
+                <h4 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/20">Studios</h4>
+                <div className="flex flex-wrap gap-x-8 gap-y-4">
                   {media.studios.map((studio: string) => (
-                    <span key={studio} className="text-white/60 text-sm">{studio}</span>
+                    <span key={studio} className="text-white/50 text-sm font-medium tracking-wide uppercase">{studio}</span>
                   ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Cast (if available in JSON) */}
+          {/* Cast */}
           {media.cast?.length > 0 && (
-            <div>
-              <h3 className="label-refined mb-8 text-white">Distribution principale</h3>
-              <div className="flex flex-wrap gap-10">
-                {media.cast.slice(0, 6).map((person: any) => (
-                  <div key={person.name} className="group">
-                    <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 mb-4 transition-transform group-hover:scale-110 flex items-center justify-center">
+            <div className="space-y-12">
+              <h3 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/20">Distribution</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-10">
+                {media.cast.slice(0, 10).map((person: any) => (
+                  <div key={person.name} className="group cursor-pointer">
+                    <div className="aspect-square rounded-3xl bg-white/[0.02] border border-white/5 mb-6 transition-all duration-700 group-hover:scale-105 group-hover:border-white/20 flex items-center justify-center overflow-hidden">
                       {person.profilePath ? (
                         <img 
                           src={getTmdbImage(person.profilePath, "w185")} 
                           alt={person.name} 
-                          className="w-full h-full object-cover rounded-full" 
+                          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
                         />
                       ) : (
-                        <span className="text-white/20 font-bold">{person.name.charAt(0)}</span>
+                        <span className="text-white/10 font-display font-light text-4xl">{person.name.charAt(0)}</span>
                       )}
                     </div>
-                    <p className="text-white font-bold text-sm mb-1">{person.name}</p>
-                    <p className="text-white/40 text-xs uppercase tracking-widest">{person.character || person.role}</p>
+                    <p className="text-white/80 font-bold text-xs uppercase tracking-widest mb-1 transition-colors duration-500 group-hover:text-white">{person.name}</p>
+                    <p className="text-white/20 text-[9px] uppercase tracking-[0.2em] font-medium">{person.character || person.role}</p>
                   </div>
                 ))}
               </div>
@@ -196,28 +199,28 @@ export default function DetailPage() {
 
         {/* Right Column: Sidebar Info */}
         <div className="space-y-12">
-          <div className="glass-card p-8 space-y-8">
-            <h3 className="label-refined text-white">Informations</h3>
+          <div className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 space-y-10">
+            <h3 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/20">Détails Techniques</h3>
             
-            <div className="space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-white/40 uppercase tracking-widest text-[10px] font-bold">Type</span>
-                <span className="text-white capitalize">{media.type === 'movie' ? 'Film' : 'Série'}</span>
+            <div className="space-y-6">
+              <div className="flex justify-between items-end">
+                <span className="text-white/15 uppercase tracking-[0.3em] text-[9px] font-bold mb-0.5">Catégorie</span>
+                <span className="text-white/70 font-display font-medium italic text-lg">{media.type === 'movie' ? 'Film' : 'Série'}</span>
               </div>
-              <div className="divider" />
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-white/40 uppercase tracking-widest text-[10px] font-bold">Sortie</span>
-                <span className="text-white">{media.releaseDate ? new Date(media.releaseDate).toLocaleDateString('fr-FR') : 'N/A'}</span>
+              <div className="h-px bg-white/5" />
+              <div className="flex justify-between items-end">
+                <span className="text-white/15 uppercase tracking-[0.3em] text-[9px] font-bold mb-0.5">Diffusion</span>
+                <span className="text-white/70 font-sans font-bold uppercase tracking-widest text-xs">{media.releaseDate ? new Date(media.releaseDate).toLocaleDateString('fr-FR') : 'N/A'}</span>
               </div>
-              <div className="divider" />
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-white/40 uppercase tracking-widest text-[10px] font-bold">Saga</span>
-                <span className="text-white">{media.saga || "Indépendant"}</span>
+              <div className="h-px bg-white/5" />
+              <div className="flex justify-between items-end">
+                <span className="text-white/15 uppercase tracking-[0.3em] text-[9px] font-bold mb-0.5">Univers</span>
+                <span className="text-white/70 font-display font-medium italic text-lg">{media.saga || "Indépendant"}</span>
               </div>
             </div>
 
-            <button className="w-full btn-glass py-4 text-[10px] font-black tracking-[0.2em] hover:bg-white/10">
-              VOIR LES CRÉDITS COMPLETS
+            <button className="w-full h-14 rounded-2xl bg-white/[0.03] border border-white/5 text-[9px] text-white/30 font-black tracking-[0.4em] uppercase hover:bg-white/[0.08] hover:text-white transition-all duration-500 mt-4">
+              Metadata Complète
             </button>
           </div>
         </div>
@@ -225,9 +228,9 @@ export default function DetailPage() {
 
       {/* ━━ Recommendations ━━ */}
       {suggestions.length > 0 && (
-        <section className="pb-32">
+        <section className="pb-40">
           <MediaRow 
-            title="Dans le même genre" 
+            title="Expériences Similaires" 
             items={suggestions} 
             delay={0.1}
           />
