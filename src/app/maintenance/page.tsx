@@ -2,119 +2,79 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Construction, Timer, Mail, RefreshCw } from 'lucide-react';
 
 export default function MaintenancePage() {
   return (
-    <main className="relative min-h-screen w-full bg-deep-black flex flex-col items-center justify-center overflow-hidden p-6">
-      {/* Background Glows — Dynamic accents */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full pointer-events-none opacity-50" />
-
-      {/* Main Content */}
-      <div className="relative z-10 w-full max-w-2xl flex flex-col items-center">
+    <main className="min-h-screen w-full bg-deep-black flex flex-col items-center justify-center overflow-hidden selection:bg-white selection:text-black">
+      
+      {/* Content Container - Extreme Negative Space */}
+      <div className="relative z-10 w-full max-w-4xl px-6 flex flex-col items-center text-center">
         
-        {/* Logo/Branding */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+        {/* Typographic Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1000, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-12 flex flex-col items-center"
+          transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-12"
         >
-          <h1 className="title-hero text-6xl md:text-8xl text-white tracking-tighter">
+          <h1 className="font-display font-black italic uppercase text-6xl sm:text-8xl md:text-[10rem] leading-[0.85] tracking-tighter text-white opacity-90">
             StreamVault
           </h1>
-          <div className="h-0.5 w-24 bg-accent mt-4 shadow-[0_0_20px_var(--accent)]" />
         </motion.div>
 
-        {/* Maintenance Panel */}
+        {/* Singular Minimalist Separator */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 800, delay: 200, ease: [0.16, 1, 0.3, 1] }}
-          className="glass-panel w-full p-8 md:p-12 flex flex-col items-center text-center space-y-10"
-        >
-          {/* Icon with animated ring */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-accent/20 blur-2xl rounded-full animate-pulse" />
-            <div className="relative flex items-center justify-center w-24 h-24 rounded-full bg-accent/10 border border-accent/20 text-accent mb-2">
-              <Construction size={44} className="animate-pulse" />
-            </div>
-          </div>
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={{ duration: 1.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="w-12 h-[1px] bg-white/20 mb-16"
+        />
 
-          <div className="space-y-4">
-            <h2 className="title-section text-white">
-              Maintenance en cours
-            </h2>
-            <p className="text-text-secondary max-w-md mx-auto leading-relaxed">
-              Nous effectuons actuellement des mises à jour pour améliorer votre expérience. 
-              StreamVault sera de retour très prochainement.
-            </p>
-          </div>
-
-          <div className="divider opacity-20" />
-
-          {/* Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            <div className="flex items-start gap-4 p-5 rounded-xl bg-white/[0.02] border border-white/[0.05] text-left">
-              <div className="p-2 rounded-lg bg-accent/10 text-accent">
-                <Timer size={20} />
-              </div>
-              <div>
-                <p className="label-refined opacity-60 mb-1">Estimation</p>
-                <p className="text-sm font-medium text-white">Environ 30 minutes</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 p-5 rounded-xl bg-white/[0.02] border border-white/[0.05] text-left">
-              <div className="p-2 rounded-lg bg-accent/10 text-accent">
-                <Mail size={20} />
-              </div>
-              <div>
-                <p className="label-refined opacity-60 mb-1">Support</p>
-                <p className="text-sm font-medium text-white">support@streamvault.fr</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="pt-4 flex flex-col sm:flex-row gap-4 w-full justify-center">
-            <button 
-              onClick={() => window.location.reload()}
-              className="btn-primary group"
-            >
-              <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-700" />
-              Actualiser
-            </button>
-            <a 
-              href="mailto:support@streamvault.fr"
-              className="btn-glass"
-            >
-              Contactez-nous
-            </a>
-          </div>
-        </motion.div>
-
-        {/* Footer info */}
-        <motion.div 
+        {/* Poetic Copy */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1000, delay: 800 }}
-          className="mt-12 flex flex-col items-center gap-4"
+          transition={{ duration: 2.5, delay: 1.4, ease: "easeOut" }}
+          className="space-y-8"
         >
-          <p className="text-text-muted text-[10px] tracking-[0.3em] uppercase flex items-center gap-3">
-            <span>OLED Cinematic Interface</span>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <span>Vision 1.0</span>
+          <h2 className="title-section text-white/70 font-light tracking-wide italic">
+            Le silence avant le spectacle.
+          </h2>
+          <p className="font-sans text-white/30 max-w-md mx-auto text-sm md:text-base leading-relaxed font-light tracking-tight">
+            Nos serveurs se synchronisent en coulisses. L'interface cinématique est en cours de recalibrage pour une immersion totale.
           </p>
         </motion.div>
 
+        {/* Metadata - Far at the bottom, ultra-minimalist */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2, delay: 2.5, ease: "easeOut" }}
+          className="absolute bottom-12 left-0 right-0 flex justify-center gap-16 px-6"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <span className="label-refined text-white/20">Statut</span>
+            <span className="font-sans text-[10px] text-white/40 tracking-widest uppercase">Maintenance active</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <span className="label-refined text-white/20">Support</span>
+            <span className="font-sans text-[10px] text-white/40 tracking-widest uppercase">support@streamvault.fr</span>
+          </div>
+        </motion.div>
+
       </div>
 
-      {/* Cinematic lines */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 -left-1/4 w-[150%] h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent rotate-[-15deg]" />
-        <div className="absolute bottom-1/4 -right-1/4 w-[150%] h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent rotate-[-15deg]" />
-      </div>
+      {/* Film Grain - Barely visible for cinematic texture, breaking the digital perfect black */}
+      <div 
+        className="pointer-events-none fixed inset-0 z-50 opacity-[0.02] mix-blend-overlay" 
+        style={{ 
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' 
+        }} 
+      />
+
+      {/* Subtle edge vignette */}
+      <div className="pointer-events-none fixed inset-0 z-40 bg-gradient-to-b from-black via-transparent to-black opacity-40"></div>
+
     </main>
   );
 }
