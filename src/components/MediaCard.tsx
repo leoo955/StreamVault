@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Plus, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useImageColors } from "@/hooks/useImageColors";
+import { useRouter } from "next/navigation";
 
 interface MediaCardProps {
   id: string;
@@ -17,7 +18,7 @@ interface MediaCardProps {
 /**
  * MediaCard component.
  * Features the signature "Vision" hover effect:
- * - Vertical lift (-4px)
+ * - Vertical lift (-6px)
  * - Dynamic accent glow
  * - Frosted glass action overlay
  */
@@ -28,18 +29,34 @@ export function MediaCard({
   accentColor, 
   type = "movie" 
 }: MediaCardProps) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const extractedColors = useImageColors(posterUrl);
   
   const finalAccent = accentColor || extractedColors.dominant;
 
+  const handleCardClick = () => {
+    router.push(`/detail/${id}`);
+  };
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/watch/${id}`);
+  };
+
+  const handleInfoClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/detail/${id}`);
+  };
+
   return (
     <motion.div
       className="relative shrink-0 w-[160px] md:w-[200px] lg:w-[220px] aspect-[2/3] group cursor-pointer"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      whileHover={{ y: -6 }} // Refined lift
+      onClick={handleCardClick}
+      whileHover={{ y: -6 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
       {/* ── Dynamic Ambient Glow ── */}
@@ -104,6 +121,7 @@ export function MediaCard({
             {/* Quick Actions — Frosted Glass style */}
             <div className="flex gap-2">
               <button
+                onClick={handlePlayClick}
                 className="flex-1 h-10 rounded-lg flex items-center justify-center transition-all duration-300 active:scale-95 text-black font-black text-[10px] tracking-widest"
                 style={{ 
                   backgroundColor: finalAccent, 
@@ -113,11 +131,17 @@ export function MediaCard({
                 <Play size={14} fill="currentColor" />
               </button>
               
-              <button className="w-10 h-10 rounded-lg flex items-center justify-center frost-effect hover:bg-white/10 transition-all duration-300 active:scale-95">
+              <button 
+                onClick={(e) => e.stopPropagation()}
+                className="w-10 h-10 rounded-lg flex items-center justify-center frost-effect hover:bg-white/10 transition-all duration-300 active:scale-95"
+              >
                 <Plus size={16} className="text-white" />
               </button>
               
-              <button className="w-10 h-10 rounded-lg flex items-center justify-center frost-effect hover:bg-white/10 transition-all duration-300 active:scale-95">
+              <button 
+                onClick={handleInfoClick}
+                className="w-10 h-10 rounded-lg flex items-center justify-center frost-effect hover:bg-white/10 transition-all duration-300 active:scale-95"
+              >
                 <Info size={16} className="text-white" />
               </button>
             </div>
@@ -137,4 +161,3 @@ export function MediaCard({
     </motion.div>
   );
 }
-

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Plus, Star, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useImageColors } from "@/hooks/useImageColors";
+import { useRouter } from "next/navigation";
 
 interface HeroItem {
   id: string;
@@ -30,6 +31,7 @@ interface HeroHeaderProps {
  * Occupies 100vh with immersive gradients.
  */
 export function HeroHeader({ items, autoPlayInterval = 10000 }: HeroHeaderProps) {
+  const router = useRouter();
   const [index, setIndex] = useState(0);
   const hero = items[index];
   const colors = useImageColors(hero?.backdrop);
@@ -135,7 +137,10 @@ export function HeroHeader({ items, autoPlayInterval = 10000 }: HeroHeaderProps)
 
             {/* Action buttons */}
             <div className="flex flex-row items-center gap-5">
-              <button className="btn-primary group">
+              <button 
+                onClick={() => router.push(`/watch/${hero.id}`)}
+                className="btn-primary group"
+              >
                 <Play size={22} fill="currentColor" className="group-hover:scale-110 transition-transform" />
                 <span>REGARDER</span>
               </button>

@@ -31,18 +31,26 @@ export function ProfileGuard({ children }: { children: React.ReactNode }) {
     const activeProfileCookie = cookiesArr.find(row => row.startsWith('selectedProfileId='));
     const activeProfileId = activeProfileCookie ? activeProfileCookie.split('=')[1] : null;
 
-    // Si on est sur une route publique, on redirige vers /profiles (ou la page d'accueil si on a un profil)
-    // EXCEPTION: La page de maintenance ne doit jamais rediriger
+    // Si on est sur une route publique, on traite les cas spécifiques
     if (publicRoutes.includes(pathname)) {
+        // La page de maintenance et la racine (Library) sont toujours accessibles
         if (pathname === "/maintenance" || pathname === "/") {
             setIsChecking(false);
             return;
         }
 
+        // Sur les autres pages publiques (login/register/profiles)
         if (activeProfileId) {
+            // Si on a déjà un profil, on va à l'accueil
             router.replace("/");
         } else {
-            router.replace(profileSelectionRoute);
+            // Si on n'a pas de profil et qu'on est déjà sur la sélection, on s'arrête
+            if (pathname === profileSelectionRoute) {
+                setIsChecking(false);
+            } else {
+                // Sinon on force la sélection
+                router.replace(profileSelectionRoute);
+            }
         }
         return;
     }
