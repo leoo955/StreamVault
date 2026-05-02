@@ -24,33 +24,39 @@ export default function SearchPage() {
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
-    setIsSearching(e.target.value.length > 0);
+    const val = e.target.value;
+    setQuery(val);
+    setIsSearching(val.length > 0);
   };
 
   return (
-    <div className="min-h-screen w-full bg-deep-black px-8 md:px-12 lg:px-20 py-32">
+    <div className="min-h-screen w-full bg-black px-8 md:px-12 lg:px-20 py-32 selection:bg-white selection:text-black">
       
       {/* Search Input Section */}
-      <div className="max-w-4xl mx-auto mb-20">
+      <div className="max-w-4xl mx-auto mb-28">
         <div className="relative group">
-          <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20 group-focus-within:text-accent transition-colors duration-500" />
+          <SearchIcon className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-white transition-colors duration-700" />
           <input 
             type="text" 
             value={query}
             onChange={handleSearch}
-            placeholder="Rechercher un film, une série, un acteur..." 
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-16 pr-16 text-xl md:text-2xl font-display font-light focus:outline-none focus:border-white/20 focus:bg-white/[0.07] transition-all placeholder:text-white/10"
+            placeholder="RECHERCHER UN FILM, UNE SÉRIE..." 
+            className="w-full bg-white/[0.02] border border-white/5 rounded-3xl py-8 pl-20 pr-20 text-2xl md:text-3xl font-display font-light tracking-wide focus:outline-none focus:border-white/10 focus:bg-white/[0.04] transition-all duration-700 placeholder:text-white/5 uppercase"
             autoFocus
           />
-          {query && (
-            <button 
-              onClick={() => setQuery("")}
-              className="absolute right-6 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white/10 transition-colors"
-            >
-              <X className="w-6 h-6 text-white/40" />
-            </button>
-          )}
+          <AnimatePresence>
+            {query && (
+              <motion.button 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                onClick={() => { setQuery(""); setIsSearching(false); }}
+                className="absolute right-8 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white/10 transition-colors"
+              >
+                <X className="w-6 h-6 text-white/20" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -61,20 +67,21 @@ export default function SearchPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16"
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-24"
           >
             {/* Trending Searches */}
-            <div>
-              <div className="flex items-center gap-3 mb-8">
-                <TrendingUp className="w-5 h-5 text-accent" />
-                <h3 className="label-refined text-white">Recherches populaires</h3>
+            <div className="space-y-10">
+              <div className="flex items-center gap-4">
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                <h3 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/30">Tendances</h3>
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-4">
                 {TRENDING_SEARCHES.map(term => (
                   <button 
                     key={term}
-                    onClick={() => setQuery(term)}
-                    className="px-5 py-2.5 rounded-full bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/10 transition-all text-sm text-white/60 hover:text-white"
+                    onClick={() => { setQuery(term); setIsSearching(true); }}
+                    className="px-6 py-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/20 hover:bg-white/[0.06] transition-all duration-500 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white"
                   >
                     {term}
                   </button>
@@ -83,17 +90,20 @@ export default function SearchPage() {
             </div>
 
             {/* Recent History */}
-            <div>
-              <div className="flex items-center gap-3 mb-8">
-                <History className="w-5 h-5 text-white/40" />
-                <h3 className="label-refined text-white">Historique récent</h3>
+            <div className="space-y-10">
+              <div className="flex items-center gap-4">
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                <h3 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/30">Historique</h3>
               </div>
-              <div className="space-y-4">
+              <div className="flex flex-col gap-4">
                 {["Inception", "Blade Runner"].map(term => (
-                  <div key={term} className="flex items-center justify-between group cursor-pointer">
-                    <span className="text-white/40 group-hover:text-white transition-colors">{term}</span>
-                    <button className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-all">
-                      <X className="w-4 h-4" />
+                  <div key={term} className="flex items-center justify-between group cursor-pointer p-4 rounded-2xl hover:bg-white/[0.02] transition-all duration-500">
+                    <div className="flex items-center gap-4">
+                       <History size={14} className="text-white/10 group-hover:text-white/40 transition-colors" />
+                       <span className="text-sm font-medium tracking-wide text-white/20 group-hover:text-white/60 transition-colors">{term}</span>
+                    </div>
+                    <button className="opacity-0 group-hover:opacity-100 p-2 hover:text-white transition-all">
+                      <X className="w-4 h-4 text-white/20" />
                     </button>
                   </div>
                 ))}
@@ -105,23 +115,23 @@ export default function SearchPage() {
             key="results"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
             className="space-y-12"
           >
-            <div className="flex items-center justify-between border-b border-white/5 pb-6">
-              <h2 className="text-white/40 label-refined">
-                Résultats pour <span className="text-white">"{query}"</span>
+            <div className="flex items-center justify-between border-b border-white/5 pb-8">
+              <h2 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/20">
+                RÉSULTATS POUR <span className="text-white/60 ml-2">"{query.toUpperCase()}"</span>
               </h2>
-              <span className="text-white/20 text-xs uppercase tracking-widest">{MOCK_RESULTS.length} résultats trouvés</span>
+              <span className="text-white/10 text-[9px] font-bold uppercase tracking-[0.2em]">{MOCK_RESULTS.length} ITEMS</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 md:gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-10">
               {MOCK_RESULTS.map((movie, i) => (
                 <MediaCard 
                   key={movie.id}
                   id={movie.id} 
                   title={movie.title} 
                   posterUrl={movie.poster} 
-                  accentColor={movie.color}
                 />
               ))}
             </div>
