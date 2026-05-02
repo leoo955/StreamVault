@@ -4,11 +4,15 @@ import { useUser } from "@/lib/userProvider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 export default function ProfilesPage() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading, refreshUser } = useUser();
   const router = useRouter();
+  const [isCreating, setIsCreating] = useState(false);
+  const [newProfileName, setNewProfileName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -28,6 +32,34 @@ export default function ProfilesPage() {
     // Stockage dans un cookie pour que le serveur et le client y aient accès
     document.cookie = `selectedProfileId=${profileId}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
     router.push("/");
+  };
+
+  const handleCreateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProfileName.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newProfileName }),
+      });
+
+      if (res.ok) {
+        setNewProfileName("");
+        setIsCreating(false);
+        await refreshUser(); // Update user data with the new profile
+      } else {
+        const data = await res.json();
+        alert(data.error || "Erreur lors de la création du profil");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Une erreur est survenue");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const containerVariants = {
@@ -123,6 +155,7 @@ export default function ProfilesPage() {
           {(!user.profiles || user.profiles.length < 5) && (
             <motion.div 
               variants={itemVariants}
+              onClick={() => setIsCreating(true)}
               className="group flex flex-col items-center cursor-pointer"
             >
               <div className="w-28 h-28 md:w-36 md:h-36 lg:w-44 lg:h-44 rounded-[1.5rem] md:rounded-[2rem] mb-6 flex items-center justify-center transition-all duration-500 ease-out group-hover:scale-105 border border-dashed border-white/20 group-hover:border-white/60 bg-white/0 group-hover:bg-white/[0.03] backdrop-blur-md">
@@ -135,6 +168,59 @@ export default function ProfilesPage() {
           )}
           
         </motion.div>
+
+        {/* Modal Création Profil */}
+        <AnimatePresence>
+          {isCreating && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-6"
+            >
+              <motion.div 
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="w-full max-w-md bg-[#0C0C0C] border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden"
+              >
+                {/* Lueur subtile en fond de modal */}
+                <div className="absolute -top-24 -left-24 w-48 h-48 bg-white/5 blur-[80px] rounded-full pointer-events-none"></div>
+                
+                <button 
+                  onClick={() => setIsCreating(false)}
+                  className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+
+                <h3 className="text-2xl md:text-3xl font-display font-light text-white mb-8">Nouveau profil</h3>
+
+                <form onSubmit={handleCreateProfile} className="space-y-8">
+                  <div className="space-y-2">
+                    <label className="label-refined text-white/30">Nom du profil</label>
+                    <input 
+                      autoFocus
+                      type="text"
+                      value={newProfileName}
+                      onChange={(e) => setNewProfileName(e.target.value)}
+                      placeholder="Ex: Invité, Enfants..."
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-white/40 transition-all placeholder:text-white/10"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit"
+                    disabled={!newProfileName.trim() || isSubmitting}
+                    className="w-full btn-primary disabled:opacity-50 disabled:scale-100 flex justify-center"
+                  >
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : "Créer le profil"}
+                  </button>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Bouton Gérer les profils */}
         <motion.div 

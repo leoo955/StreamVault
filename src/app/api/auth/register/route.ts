@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const salt = await bcrypt.genSalt(10)
     const passwordHash = await bcrypt.hash(password, salt)
 
-    // Create user
+    // Create user with a default profile
     const user = await prisma.user.create({
       data: {
         email,
@@ -50,7 +50,15 @@ export async function POST(request: Request) {
         salt,
         role: code.role,
         plan: code.plan,
+        profiles: {
+          create: {
+            name: username || 'Principal',
+          }
+        }
       },
+      include: {
+        profiles: true
+      }
     })
 
     // Increment code usage
