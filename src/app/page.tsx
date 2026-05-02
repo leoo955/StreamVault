@@ -5,7 +5,7 @@ import { HeroHeader } from "@/components/HeroHeader";
 import { MediaRow } from "@/components/MediaRow";
 import { EmptyState } from "@/components/EmptyState";
 import { useUser } from "@/lib/userProvider";
-import { formatRuntime, getYear, getTmdbImage } from "@/lib/utils";
+import * as utils from "../lib/utils";
 import MaintenanceView from "./MaintenanceView";
 
 export default function HomePage() {
@@ -35,7 +35,7 @@ export default function HomePage() {
     };
 
     fetchMedia();
-  }, []);
+  }, [isMaintenanceMode]);
 
   if (isLoading) {
     return (
@@ -70,33 +70,33 @@ export default function HomePage() {
       id: m.id,
       title: m.title,
       tagline: m.genres?.[0] || "Exclusivité",
-      year: getYear(m.releaseDate),
-      duration: formatRuntime(m.runtime),
+      year: utils.getYear(m.releaseDate),
+      duration: utils.formatRuntime(m.runtime),
       quality: "4K HDR",
       rating: m.voteAverage || 0,
       description: m.description || "",
-      backdrop: getTmdbImage(m.backdropPath),
+      backdrop: utils.getTmdbImage(m.backdropPath),
       color: "", // Dynamically handled by component
     }));
 
   const trending = media.slice(0, 10).map(m => ({
     id: m.id,
     title: m.title,
-    poster: getTmdbImage(m.posterPath, "w500"),
+    poster: utils.getTmdbImage(m.posterPath, "w500"),
     color: "",
   }));
 
   const movies = media.filter(m => m.type === 'movie').slice(0, 10).map(m => ({
     id: m.id,
     title: m.title,
-    poster: getTmdbImage(m.posterPath, "w500"),
+    poster: utils.getTmdbImage(m.posterPath, "w500"),
     color: "",
   }));
 
   const series = media.filter(m => m.type === 'series').slice(0, 10).map(m => ({
     id: m.id,
     title: m.title,
-    poster: getTmdbImage(m.posterPath, "w500"),
+    poster: utils.getTmdbImage(m.posterPath, "w500"),
     color: "",
   }));
 

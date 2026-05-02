@@ -6,7 +6,7 @@ import { MediaCard } from "@/components/MediaCard";
 import { Search, Filter } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { useUser } from "@/lib/userProvider";
-import { getTmdbImage } from "@/lib/utils";
+import * as utils from "@/lib/utils";
 
 export default function SeriesPage() {
   const { user } = useUser();
@@ -104,7 +104,7 @@ export default function SeriesPage() {
               <MediaCard 
                 id={show.id} 
                 title={show.title} 
-                posterUrl={getTmdbImage(show.posterPath, "w500")} 
+                posterUrl={utils.getTmdbImage(show.posterPath, "w500")} 
                 type="series"
               />
             </motion.div>

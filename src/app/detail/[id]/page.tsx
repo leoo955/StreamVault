@@ -13,7 +13,7 @@ import { useImageColors } from "@/hooks/useImageColors";
 import { ShareButton } from "@/components/ShareButton";
 import { DownloadButton } from "@/components/DownloadButton";
 import { MediaRow } from "@/components/MediaRow";
-import { formatRuntime, getYear, getTmdbImage } from "@/lib/utils";
+import * as utils from "@/lib/utils";
 
 export default function DetailPage() {
   const params = useParams();
@@ -24,7 +24,7 @@ export default function DetailPage() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const { dominant: accentColor } = useImageColors(media ? getTmdbImage(media.posterPath, "w500") : null);
+  const { dominant: accentColor } = useImageColors(media ? utils.getTmdbImage(media.posterPath, "w500") : null);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -77,41 +77,41 @@ export default function DetailPage() {
       
       {/* ━━ Immersive Hero Backdrop ━━ */}
       <section className="relative h-[85vh] w-full flex flex-col justify-end overflow-hidden">
-        <motion.div 
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1.05 }}
-          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('${getTmdbImage(media.backdropPath)}')` }}
-        />
-        
-        {/* Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
-        
-        {/* Content Overlay */}
-        <div className="relative z-10 px-8 md:px-12 lg:px-20 pb-20 max-w-5xl">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {/* Meta */}
-            <div className="flex items-center gap-6 mb-8">
-              <span className="px-3 py-1.5 rounded-md bg-white/5 backdrop-blur-xl text-[9px] font-black tracking-[0.2em] text-white/80 border border-white/10 uppercase">
-                4K HDR · ULTRA VISION
-              </span>
-              <div className="flex items-center gap-4 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">
-                <div className="flex items-center gap-2">
-                  <Star size={12} className="text-accent" fill="currentColor" />
-                  <span className="text-white/80">{media.voteAverage?.toFixed(1) || "0.0"}</span>
+          <motion.div 
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1.05 }}
+            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url('${utils.getTmdbImage(media.backdropPath)}')` }}
+          />
+          
+          {/* Gradients */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
+          
+          {/* Content Overlay */}
+          <div className="relative z-10 px-8 md:px-12 lg:px-20 pb-20 max-w-5xl">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* Meta */}
+              <div className="flex items-center gap-6 mb-8">
+                <span className="px-3 py-1.5 rounded-md bg-white/5 backdrop-blur-xl text-[9px] font-black tracking-[0.2em] text-white/80 border border-white/10 uppercase">
+                  4K HDR · ULTRA VISION
+                </span>
+                <div className="flex items-center gap-4 text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">
+                  <div className="flex items-center gap-2">
+                    <Star size={12} className="text-accent" fill="currentColor" />
+                    <span className="text-white/80">{media.voteAverage?.toFixed(1) || "0.0"}</span>
+                  </div>
+                  <span className="w-1 h-1 rounded-full bg-white/10" />
+                  <span>{utils.getYear(media.releaseDate)}</span>
+                  <span className="w-1 h-1 rounded-full bg-white/10" />
+                  <span>{utils.formatRuntime(media.runtime)}</span>
                 </div>
-                <span className="w-1 h-1 rounded-full bg-white/10" />
-                <span>{getYear(media.releaseDate)}</span>
-                <span className="w-1 h-1 rounded-full bg-white/10" />
-                <span>{formatRuntime(media.runtime)}</span>
               </div>
-            </div>
 
             {/* Title */}
             <h1 className="font-display font-black italic uppercase text-6xl md:text-8xl lg:text-9xl mb-6 tracking-tighter text-white">
@@ -180,7 +180,7 @@ export default function DetailPage() {
                     <div className="aspect-square rounded-3xl bg-white/[0.02] border border-white/5 mb-6 transition-all duration-700 group-hover:scale-105 group-hover:border-white/20 flex items-center justify-center overflow-hidden">
                       {person.profilePath ? (
                         <img 
-                          src={getTmdbImage(person.profilePath, "w185")} 
+                          src={utils.getTmdbImage(person.profilePath, "w185")} 
                           alt={person.name} 
                           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
                         />

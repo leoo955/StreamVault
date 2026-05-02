@@ -6,7 +6,7 @@ import { MediaCard } from "@/components/MediaCard";
 import { Search, Filter } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { useUser } from "@/lib/userProvider";
-import { getTmdbImage } from "@/lib/utils";
+import * as utils from "@/lib/utils";
 
 export default function MoviesPage() {
   const { user } = useUser();
@@ -104,7 +104,7 @@ export default function MoviesPage() {
               <MediaCard 
                 id={movie.id} 
                 title={movie.title} 
-                posterUrl={getTmdbImage(movie.posterPath, "w500")} 
+                posterUrl={utils.getTmdbImage(movie.posterPath, "w500")} 
                 type="movie"
               />
             </motion.div>

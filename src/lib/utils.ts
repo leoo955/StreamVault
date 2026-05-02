@@ -15,8 +15,14 @@ export function formatRuntime(minutes: number | null): string {
 
 export function getYear(date: Date | string | null): string {
   if (!date) return "N/A";
-  const d = new Date(date);
-  return d.getFullYear().toString();
+  try {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    if (isNaN(year)) return "N/A";
+    return year.toString();
+  } catch (e) {
+    return "N/A";
+  }
 }
 
 export function getTmdbImage(path: string | null, size: string = "original"): string {
