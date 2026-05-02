@@ -102,7 +102,10 @@ export default function AdminDashboard() {
         <div className="space-y-8">
           <h3 className="font-sans font-bold uppercase tracking-[0.4em] text-[10px] text-white/30 px-2">Opérations</h3>
           <div className="flex flex-col gap-4">
-            <button className="group w-full flex items-center gap-4 bg-white text-black font-sans font-black uppercase tracking-[0.2em] text-[10px] py-5 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-500">
+            <button 
+              onClick={() => router.push("/admin/media/add")}
+              className="group w-full flex items-center gap-4 bg-white text-black font-sans font-black uppercase tracking-[0.2em] text-[10px] py-5 px-8 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-500"
+            >
               <PlusSquareIcon size={16} />
               <span>Nouveau Média</span>
             </button>
