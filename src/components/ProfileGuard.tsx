@@ -11,7 +11,7 @@ export function ProfileGuard({ children }: { children: React.ReactNode }) {
   const [isChecking, setIsChecking] = useState(true);
 
   // Routes that do not require an active profile
-  const publicRoutes = ["/login", "/register", "/offline", "/maintenance"];
+  const publicRoutes = ["/login", "/register", "/offline", "/maintenance", "/"];
   const profileSelectionRoute = "/profiles";
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function ProfileGuard({ children }: { children: React.ReactNode }) {
     // Si on est sur une route publique, on redirige vers /profiles (ou la page d'accueil si on a un profil)
     // EXCEPTION: La page de maintenance ne doit jamais rediriger
     if (publicRoutes.includes(pathname)) {
-        if (pathname === "/maintenance") {
+        if (pathname === "/maintenance" || pathname === "/") {
             setIsChecking(false);
             return;
         }
