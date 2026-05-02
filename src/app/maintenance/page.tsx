@@ -265,8 +265,6 @@ export default function MaintenancePage() {
         transition={{ duration: 1.5, delay: 1.2 }}
         className="mt-16 flex flex-col items-center gap-2 text-white/10"
       >
-        <span className="text-[9px] uppercase tracking-[0.4em] font-bold">OLED Cinematic Interface</span>
-        <span className="text-[9px] font-medium tracking-widest uppercase opacity-50">Vision 1.0</span>
       </motion.div>
 
       {/* Cinematic Grain Overlay */}

@@ -42,8 +42,8 @@ export default function HomePage() {
     return (
       <div className="min-h-screen w-full bg-deep-black flex items-center justify-center">
         <EmptyState 
-          title="Votre bibliothèque est vide" 
-          description="Commencez à ajouter des films et des séries depuis le tableau de bord administrateur pour donner vie à votre cinéma personnel."
+          title="Le catalogue est vide" 
+          description="Il n'y a pas encore de contenu ici. Si vous cherchez un film ou une série en particulier, n'hésitez pas à en faire la demande !"
           isAdmin={user?.role === 'admin'}
         />
       </div>
