@@ -30,7 +30,7 @@ export function Sidebar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Routes where the sidebar should be hidden
-  const hideOnRoutes = ["/login", "/register", "/offline", "/profiles", "/maintenance", "/"];
+  const hideOnRoutes = ["/login", "/register", "/offline", "/profiles", "/maintenance"];
   if (hideOnRoutes.includes(pathname)) return null;
   useEffect(() => {
     const handleScroll = () => {

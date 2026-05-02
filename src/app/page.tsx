@@ -76,28 +76,28 @@ export default function HomePage() {
       rating: m.voteAverage || 0,
       description: m.description || "",
       backdrop: getTmdbImage(m.backdropPath),
-      color: "#EAB308", // Dynamic color hook will handle it in HeroHeader if updated, but for now we use a default
+      color: "", // Dynamically handled by component
     }));
 
   const trending = media.slice(0, 10).map(m => ({
     id: m.id,
     title: m.title,
     poster: getTmdbImage(m.posterPath, "w500"),
-    color: "#EAB308",
+    color: "",
   }));
 
   const movies = media.filter(m => m.type === 'movie').slice(0, 10).map(m => ({
     id: m.id,
     title: m.title,
     poster: getTmdbImage(m.posterPath, "w500"),
-    color: "#EAB308",
+    color: "",
   }));
 
   const series = media.filter(m => m.type === 'series').slice(0, 10).map(m => ({
     id: m.id,
     title: m.title,
     poster: getTmdbImage(m.posterPath, "w500"),
-    color: "#EAB308",
+    color: "",
   }));
 
   return (

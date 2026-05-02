@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Plus, Star, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useImageColors } from "@/hooks/useImageColors";
 
 interface HeroItem {
   id: string;
@@ -31,6 +32,7 @@ interface HeroHeaderProps {
 export function HeroHeader({ items, autoPlayInterval = 10000 }: HeroHeaderProps) {
   const [index, setIndex] = useState(0);
   const hero = items[index];
+  const colors = useImageColors(hero?.backdrop);
 
   const nextHero = useCallback(() => {
     setIndex((prev) => (prev + 1) % items.length);
@@ -46,7 +48,7 @@ export function HeroHeader({ items, autoPlayInterval = 10000 }: HeroHeaderProps)
   return (
     <section 
       className="relative h-screen w-full flex flex-col justify-end overflow-hidden"
-      style={{ '--accent': hero.color } as React.CSSProperties}
+      style={{ '--accent': colors.dominant } as React.CSSProperties}
     >
       {/* Backdrop images with crossfade & Ken Burns effect */}
       <AnimatePresence mode="wait">
@@ -77,7 +79,7 @@ export function HeroHeader({ items, autoPlayInterval = 10000 }: HeroHeaderProps)
       {/* Subtle accent glow at the bottom left */}
       <div
         className="absolute bottom-0 left-0 right-0 h-[500px] opacity-20 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse at 15% 100%, ${hero.color}66 0%, transparent 70%)` }}
+        style={{ background: `radial-gradient(ellipse at 15% 100%, ${colors.dominant}66 0%, transparent 70%)` }}
       />
 
       {/* Content */}

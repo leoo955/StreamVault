@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Plus, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useImageColors } from "@/hooks/useImageColors";
 
 interface MediaCardProps {
   id: string;
@@ -24,11 +25,14 @@ export function MediaCard({
   id, 
   title, 
   posterUrl, 
-  accentColor = "#EAB308", 
+  accentColor, 
   type = "movie" 
 }: MediaCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const extractedColors = useImageColors(posterUrl);
+  
+  const finalAccent = accentColor || extractedColors.dominant;
 
   return (
     <motion.div
@@ -48,9 +52,9 @@ export function MediaCard({
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
             style={{
-              background: `radial-gradient(circle at center, ${accentColor}15 0%, transparent 70%)`,
+              background: `radial-gradient(circle at center, ${finalAccent}15 0%, transparent 70%)`,
               filter: "blur(20px)",
-              boxShadow: `0 20px 50px -10px ${accentColor}25`,
+              boxShadow: `0 20px 50px -10px ${finalAccent}25`,
             }}
           />
         )}
@@ -88,7 +92,7 @@ export function MediaCard({
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="label-refined text-[8px] text-accent font-black">{type === "movie" ? "FILM" : "SÉRIE"}</span>
+              <span className="label-refined text-[8px] font-black" style={{ color: finalAccent }}>{type === "movie" ? "FILM" : "SÉRIE"}</span>
               <div className="w-1 h-1 rounded-full bg-white/20" />
               <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">4K HDR</span>
             </div>
@@ -102,8 +106,8 @@ export function MediaCard({
               <button
                 className="flex-1 h-10 rounded-lg flex items-center justify-center transition-all duration-300 active:scale-95 text-black font-black text-[10px] tracking-widest"
                 style={{ 
-                  backgroundColor: accentColor, 
-                  boxShadow: isHovered ? `0 0 20px -5px ${accentColor}` : "none" 
+                  backgroundColor: finalAccent, 
+                  boxShadow: isHovered ? `0 0 20px -5px ${finalAccent}` : "none" 
                 }}
               >
                 <Play size={14} fill="currentColor" />
@@ -124,7 +128,7 @@ export function MediaCard({
         <motion.div
           className="absolute inset-0 rounded-xl md:rounded-2xl pointer-events-none z-30"
           animate={{
-            borderColor: isHovered ? `${accentColor}40` : "rgba(255,255,255,0.05)",
+            borderColor: isHovered ? `${finalAccent}40` : "rgba(255,255,255,0.05)",
             borderWidth: isHovered ? "2px" : "1px",
           }}
           transition={{ duration: 0.5 }}
@@ -133,3 +137,4 @@ export function MediaCard({
     </motion.div>
   );
 }
+
