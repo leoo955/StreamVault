@@ -86,7 +86,20 @@ export default function MaintenancePage() {
     });
   }, [direction, food, generateFood, showGame]);
 
-  // --- Controls ---
+  // --- Admin Bypass Shortcut ---
+  useEffect(() => {
+    const handleAdminBypass = (e: KeyboardEvent) => {
+      // Check for Ctrl + Alt + A
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'a') {
+        router.push('/login');
+      }
+    };
+
+    window.addEventListener('keydown', handleAdminBypass);
+    return () => window.removeEventListener('keydown', handleAdminBypass);
+  }, [router]);
+
+  // --- Controls (Snake) ---
   useEffect(() => {
     if (!showGame) return;
 
