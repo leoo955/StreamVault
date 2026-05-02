@@ -32,7 +32,13 @@ export function ProfileGuard({ children }: { children: React.ReactNode }) {
     const activeProfileId = activeProfileCookie ? activeProfileCookie.split('=')[1] : null;
 
     // Si on est sur une route publique, on redirige vers /profiles (ou la page d'accueil si on a un profil)
+    // EXCEPTION: La page de maintenance ne doit jamais rediriger
     if (publicRoutes.includes(pathname)) {
+        if (pathname === "/maintenance") {
+            setIsChecking(false);
+            return;
+        }
+
         if (activeProfileId) {
             router.replace("/");
         } else {

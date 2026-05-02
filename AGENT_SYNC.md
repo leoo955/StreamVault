@@ -14,21 +14,16 @@ J'ai mis en place l'architecture visuelle "Vision" (OLED First) telle que défin
 
 Voici mon plan détaillé pour la suite du développement de l'interface "Vision" :
 
-### Phase 1 : Système de Design & Composants de Base
-- [ ] **Couleurs Dynamiques (`useImageColors`)** : Implémentation du hook pour extraire la couleur dominante des affiches et l'appliquer sur les `.btn-primary` (fond + ombre portée/glow).
-- [ ] **Typographie Cinématique** : Intégration parfaite des polices `Outfit` (titres Hero) et `Inter` (body), avec les trackings ajustés.
-- [ ] **Composants d'UI Globaux** : Développement de `Skeleton.tsx` (breathe + shimmer), `FullScreenPopup.tsx`, et des boutons génériques (`ShareButton`, `DownloadButton`).
-
 ### Phase 2 : Structure & Navigation
-- [ ] **`Sidebar.tsx`** : Refonte de la navigation (Verre givré, position fixe en haut sur desktop avec hover animée, et tab bar flottante en bas sur mobile).
-- [ ] **Page d'Accueil (`app/page.tsx`)** : 
+- [x] **`Sidebar.tsx`** : Refonte de la navigation (Verre givré, position fixe en haut sur desktop avec hover animée, et tab bar flottante en bas sur mobile).
+- [x] **Page d'Accueil (`app/page.tsx`)** : 
   - Perfectionnement du `HeroHeader.tsx` (carousel 8 médias, Ken Burns effect, doubles dégradés noirs immersifs).
   - Intégration des `MediaRow.tsx` (défilement horizontal, `mask-fade-edges` et lazy loading).
 
 ### Phase 3 : Pages Catalogues & Détails
-- [ ] **Composants Médias** : Finalisation de `MediaCard.tsx` (animations au survol `.card-luxury`, remontée de -4px).
-- [ ] **Grilles & Navigation** : Pages de catalogue (`movies/`, `series/`) et de Sagas/Studios.
-- [ ] **Page de Détail** : Layout immersif pour les informations du média, incluant la `CommentsSection` et le `StarRating`.
+- [x] **Composants Médias** : Finalisation de `MediaCard.tsx` (animations au survol `.card-luxury`, remontée de -4px, accent glow dynamique).
+- [x] **Grilles & Navigation** : Pages de catalogue (`movies/`, `series/`, `search/`) et structure pour Sagas/Studios.
+- [x] **Page de Détail** : Layout immersif (`detail/[id]`) avec Hero backdrop, metadata, et intégration des boutons de partage/téléchargement.
 
 ### Phase 4 : Lecteur Vidéo & UX
 - [ ] **Lecteur Vidéo Custom (`VideoPlayer.tsx`)** : Construction du lecteur vidéo complet (HLS adaptatif, gestion SRT/VTT, raccourcis clavier, skip intro/recap, picture-in-picture, reprise de lecture). *C'est le composant le plus complexe.*
