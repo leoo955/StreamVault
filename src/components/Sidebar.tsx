@@ -29,9 +29,6 @@ export function Sidebar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  // Routes where the sidebar should be hidden
-  const hideOnRoutes = ["/login", "/register", "/offline", "/profiles", "/maintenance"];
-  if (hideOnRoutes.includes(pathname)) return null;
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -39,6 +36,10 @@ export function Sidebar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Routes where the sidebar should be hidden
+  const hideOnRoutes = ["/login", "/register", "/offline", "/profiles", "/maintenance"];
+  if (hideOnRoutes.includes(pathname)) return null;
 
   const navLinks = [
     { name: "Accueil", href: "/", icon: Home },
