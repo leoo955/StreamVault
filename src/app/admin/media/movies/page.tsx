@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Plus, Search, MoreVertical, Trash2, Edit3, Film } from "lucide-react";
+import { Plus, Search, Trash2, Edit3, Film, Loader2 } from "lucide-react";
 import * as utils from "@/lib/utils";
 
 export default function AdminMoviesPage() {
@@ -10,22 +9,35 @@ export default function AdminMoviesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        const res = await fetch("/api/media?type=movie");
-        if (res.ok) {
-          const data = await res.json();
-          setMovies(data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+  const fetchMovies = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/media?type=movie");
+      if (res.ok) {
+        const data = await res.json();
+        setMovies(data);
       }
-    };
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchMovies();
   }, []);
+
+  const deleteMovie = async (id: string) => {
+    if (!confirm("Supprimer ce film ?")) return;
+    try {
+      const res = await fetch(`/api/media/${id}`, { method: "DELETE" });
+      if (res.ok) fetchMovies();
+      else alert("Échec de la suppression");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const filtered = movies.filter(m => m.title.toLowerCase().includes(search.toLowerCase()));
 
@@ -72,10 +84,10 @@ export default function AdminMoviesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {isLoading ? (
+            {isLoading && movies.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-8 py-20 text-center">
-                  <div className="w-8 h-8 rounded-full border-2 border-white/5 border-t-white animate-spin mx-auto"></div>
+                  <Loader2 className="animate-spin mx-auto text-white/20" size={24} />
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
@@ -109,7 +121,10 @@ export default function AdminMoviesPage() {
                     <button className="p-2 rounded-lg hover:bg-white/5 text-white/20 hover:text-white transition-all">
                       <Edit3 size={14} />
                     </button>
-                    <button className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all">
+                    <button 
+                      onClick={() => deleteMovie(movie.id)}
+                      className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all"
+                    >
                       <Trash2 size={14} />
                     </button>
                   </div>

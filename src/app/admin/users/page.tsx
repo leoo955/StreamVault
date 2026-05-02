@@ -1,29 +1,42 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Users, Search, MoreVertical, Shield, User, Trash2 } from "lucide-react";
+import { Users, Search, Shield, User, Trash2 } from "lucide-react";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/admin/users");
-        if (res.ok) {
-          const data = await res.json();
-          setUsers(data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data);
       }
-    };
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
+
+  const deleteUser = async (id: string) => {
+    if (!confirm("Supprimer cet utilisateur ? Cette action est irréversible.")) return;
+    try {
+      const res = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
+      if (res.ok) fetchUsers();
+      else alert("Échec de la suppression");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const filtered = users.filter(u => 
     (u.username?.toLowerCase() || "").includes(search.toLowerCase()) || 
@@ -67,7 +80,7 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {isLoading ? (
+            {isLoading && users.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-8 py-20 text-center">
                   <div className="w-8 h-8 rounded-full border-2 border-white/5 border-t-white animate-spin mx-auto"></div>
@@ -87,7 +100,7 @@ export default function AdminUsersPage() {
                       <User size={16} />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white/80 group-hover:text-white transition-colors">{u.username || "Sans nom"}</div>
+                      <div className="text-xs font-bold text-white/80 group-hover:text-white transition-colors">{u.username || "Utilisateur"}</div>
                       <div className="text-[9px] text-white/20 uppercase tracking-widest">{u.email || "Pas d'email"}</div>
                     </div>
                   </div>
@@ -108,10 +121,13 @@ export default function AdminUsersPage() {
                   <span className="px-2 py-1 rounded bg-white/5 border border-white/5 text-[8px] font-black uppercase tracking-widest text-white/40">{u.plan}</span>
                 </td>
                 <td className="px-8 py-5">
-                  <span className="text-[10px] font-mono text-white/30">{u.profiles?.length || 0}</span>
+                  <span className="text-[10px] font-mono text-white/30">{u._count?.profiles || 0}</span>
                 </td>
                 <td className="px-8 py-5 text-right">
-                  <button className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all">
+                  <button 
+                    onClick={() => deleteUser(u.id)}
+                    className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all"
+                  >
                     <Trash2 size={14} />
                   </button>
                 </td>

@@ -7,23 +7,67 @@ export default function AdminInvitationsPage() {
   const [invites, setInvites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const fetchInvites = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/invitations");
+      if (res.ok) {
+        const data = await res.json();
+        setInvites(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInvites = async () => {
-      try {
-        const res = await fetch("/api/invitations");
-        if (res.ok) {
-          const data = await res.json();
-          setInvites(data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchInvites();
   }, []);
+
+  const generateCode = async () => {
+    setIsGenerating(true);
+    try {
+      // Generate a clean random code
+      const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          code: `SV-${randomCode}`,
+          maxUses: 1,
+          role: "user",
+          plan: "PREMIUM"
+        }),
+      });
+
+      if (res.ok) {
+        await fetchInvites();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Failed to generate code");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const deleteCode = async (id: string) => {
+    if (!confirm("Supprimer ce code ?")) return;
+    try {
+      const res = await fetch(`/api/invitations?id=${id}`, { method: "DELETE" });
+      if (res.ok) fetchInvites();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -44,8 +88,12 @@ export default function AdminInvitationsPage() {
           </p>
         </div>
 
-        <button className="bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
-          <Plus size={14} />
+        <button 
+          onClick={generateCode}
+          disabled={isGenerating}
+          className="bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+        >
+          {isGenerating ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}
           Générer
         </button>
       </div>
@@ -62,7 +110,7 @@ export default function AdminInvitationsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {isLoading ? (
+            {isLoading && invites.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-8 py-20 text-center">
                   <div className="w-8 h-8 rounded-full border-2 border-white/5 border-t-white animate-spin mx-auto"></div>
@@ -101,7 +149,10 @@ export default function AdminInvitationsPage() {
                   <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">{invite.role}</span>
                 </td>
                 <td className="px-8 py-4 text-right">
-                  <button className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all">
+                  <button 
+                    onClick={() => deleteCode(invite.id)}
+                    className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all"
+                  >
                     <Trash2 size={14} />
                   </button>
                 </td>
@@ -112,4 +163,22 @@ export default function AdminInvitationsPage() {
       </div>
     </div>
   );
+}
+
+function Loader2({ className, size }: { className?: string, size?: number }) {
+  return (
+    <svg 
+      className={className}
+      width={size || 24} 
+      height={size || 24} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+    </svg>
+  )
 }
