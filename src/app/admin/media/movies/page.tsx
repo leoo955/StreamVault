@@ -1,13 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Search, Trash2, Edit3, Film, Loader2 } from "lucide-react";
+import { Plus, Search, Trash2, Edit3, Film, Loader2, X, Save } from "lucide-react";
+import { cn } from "@/lib/utils";
 import * as utils from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminMoviesPage() {
   const [movies, setMovies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  
+  // Edit State
+  const [editingMovie, setEditingMovie] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [streamUrl, setStreamUrl] = useState("");
 
   const fetchMovies = async () => {
     setIsLoading(true);
@@ -36,6 +43,33 @@ export default function AdminMoviesPage() {
       else alert("Échec de la suppression");
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleEditClick = (movie: any) => {
+    setEditingMovie(movie);
+    setStreamUrl(movie.streamUrl || "");
+  };
+
+  const saveChanges = async () => {
+    if (!editingMovie || isSaving) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/media/${editingMovie.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ streamUrl }),
+      });
+      if (res.ok) {
+        setEditingMovie(null);
+        fetchMovies();
+      } else {
+        alert("Erreur lors de la sauvegarde");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -112,13 +146,18 @@ export default function AdminMoviesPage() {
                 </td>
                 <td className="px-8 py-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-green-500/60">Disponible</span>
+                    <div className={cn("w-1 h-1 rounded-full", movie.streamUrl ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
+                    <span className={cn("text-[9px] font-bold uppercase tracking-widest", movie.streamUrl ? "text-green-500/60" : "text-red-500/60")}>
+                      {movie.streamUrl ? "Prêt" : "Pas de lien"}
+                    </span>
                   </div>
                 </td>
                 <td className="px-8 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <button className="p-2 rounded-lg hover:bg-white/5 text-white/20 hover:text-white transition-all">
+                    <button 
+                      onClick={() => handleEditClick(movie)}
+                      className="p-2 rounded-lg hover:bg-white/5 text-white/20 hover:text-white transition-all"
+                    >
                       <Edit3 size={14} />
                     </button>
                     <button 
@@ -134,6 +173,76 @@ export default function AdminMoviesPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editingMovie && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-xl bg-[#0C0C0C] border border-white/10 rounded-[2.5rem] p-10 md:p-14 relative overflow-hidden shadow-2xl"
+            >
+              <button 
+                onClick={() => setEditingMovie(null)}
+                className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="flex items-center gap-6 mb-12 border-b border-white/5 pb-8">
+                 <div className="w-16 h-24 rounded-lg overflow-hidden border border-white/10 shrink-0 shadow-xl">
+                    <img src={utils.getTmdbImage(editingMovie.posterPath, "w185")} className="w-full h-full object-cover" alt="" />
+                 </div>
+                 <div>
+                    <h3 className="text-2xl font-display font-light text-white mb-2 uppercase tracking-wide">Configuration Vidéo</h3>
+                    <p className="text-white/20 text-[10px] font-bold uppercase tracking-[0.4em] line-clamp-1">{editingMovie.title}</p>
+                 </div>
+              </div>
+
+              <div className="space-y-12">
+                <div className="space-y-4">
+                  <label className="label-refined text-white/20 text-[10px]">Lien de streaming (URL)</label>
+                  <input 
+                    autoFocus
+                    type="text"
+                    value={streamUrl}
+                    onChange={(e) => setStreamUrl(e.target.value)}
+                    placeholder="https://serveur.com/film.mp4"
+                    className="w-full bg-white/[0.02] border border-white/5 rounded-2xl px-8 py-5 text-white focus:outline-none focus:border-white/20 transition-all placeholder:text-white/10"
+                  />
+                  <p className="text-[9px] text-white/15 font-medium leading-relaxed uppercase tracking-tight">
+                    Le lecteur supporte les formats .mp4, .mkv et les flux HLS (.m3u8).
+                  </p>
+                </div>
+
+                <div className="flex gap-4">
+                   <button 
+                    onClick={() => setEditingMovie(null)}
+                    className="flex-1 px-8 py-5 rounded-2xl border border-white/5 text-white/20 font-black uppercase tracking-widest text-[10px] hover:bg-white/[0.03] transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    onClick={saveChanges}
+                    disabled={isSaving}
+                    className="flex-[2] bg-white text-black font-black uppercase text-[10px] tracking-widest py-5 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(255,255,255,0.1)]"
+                  >
+                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                    Enregistrer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
