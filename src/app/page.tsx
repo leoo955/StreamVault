@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 // --- Game Constants ---
 const GRID_SIZE = 20;
@@ -14,6 +15,7 @@ const INITIAL_DIRECTION = { x: 0, y: -1 }; // Moving UP
 const GAME_SPEED = 120; // ms
 
 export default function MaintenancePage() {
+  const router = useRouter();
   // UI State
   const [showGame, setShowGame] = useState(false);
 
