@@ -129,7 +129,7 @@ export function HeroHeader({ items, autoPlayInterval = 10000 }: HeroHeaderProps)
             </h2>
 
             {/* Description */}
-            <p className="text-base md:text-lg text-white/70 font-normal leading-relaxed mb-12 max-w-lg drop-shadow-lg">
+            <p className="text-base md:text-lg text-white/70 font-normal leading-relaxed mb-12 max-w-lg drop-shadow-lg line-clamp-3 md:line-clamp-4">
               {hero.description}
             </p>
 
