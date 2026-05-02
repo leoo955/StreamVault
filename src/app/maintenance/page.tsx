@@ -1,79 +1,274 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// --- Game Constants ---
+const GRID_SIZE = 20;
+const INITIAL_SNAKE = [
+  { x: 10, y: 10 },
+  { x: 10, y: 11 },
+  { x: 10, y: 12 },
+];
+const INITIAL_DIRECTION = { x: 0, y: -1 }; // Moving UP
+const GAME_SPEED = 120; // ms
 
 export default function MaintenancePage() {
+  // Game State
+  const [snake, setSnake] = useState(INITIAL_SNAKE);
+  const [direction, setDirection] = useState(INITIAL_DIRECTION);
+  const [food, setFood] = useState({ x: 5, y: 5 });
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [score, setScore] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  
+  const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
+  const lastDirectionRef = useRef(INITIAL_DIRECTION);
+
+  // --- Logic: Random Food ---
+  const generateFood = useCallback((currentSnake: typeof INITIAL_SNAKE) => {
+    let newFood;
+    while (true) {
+      newFood = {
+        x: Math.floor(Math.random() * GRID_SIZE),
+        y: Math.floor(Math.random() * GRID_SIZE),
+      };
+      // Ensure food doesn't land on snake
+      const onSnake = currentSnake.some(seg => seg.x === newFood.x && seg.y === newFood.y);
+      if (!onSnake) break;
+    }
+    return newFood;
+  }, []);
+
+  // --- Logic: Movement & Collisions ---
+  const moveSnake = useCallback(() => {
+    setSnake((prevSnake) => {
+      const head = prevSnake[0];
+      const newHead = {
+        x: head.x + direction.x,
+        y: head.y + direction.y,
+      };
+
+      // Check Wall Collision
+      if (
+        newHead.x < 0 || 
+        newHead.x >= GRID_SIZE || 
+        newHead.y < 0 || 
+        newHead.y >= GRID_SIZE
+      ) {
+        setIsGameOver(true);
+        return prevSnake;
+      }
+
+      // Check Self Collision
+      if (prevSnake.some(seg => seg.x === newHead.x && seg.y === newHead.y)) {
+        setIsGameOver(true);
+        return prevSnake;
+      }
+
+      const newSnake = [newHead, ...prevSnake];
+
+      // Check Food Collision
+      if (newHead.x === food.x && newHead.y === food.y) {
+        setScore(s => s + 10);
+        setFood(generateFood(newSnake));
+      } else {
+        newSnake.pop(); // Remove tail
+      }
+
+      lastDirectionRef.current = direction;
+      return newSnake;
+    });
+  }, [direction, food, generateFood]);
+
+  // --- Controls ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const lastDir = lastDirectionRef.current;
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'z':
+        case 'w':
+          if (lastDir.y !== 1) setDirection({ x: 0, y: -1 });
+          break;
+        case 'ArrowDown':
+        case 's':
+          if (lastDir.y !== -1) setDirection({ x: 0, y: 1 });
+          break;
+        case 'ArrowLeft':
+        case 'q':
+        case 'a':
+          if (lastDir.x !== 1) setDirection({ x: -1, y: 0 });
+          break;
+        case 'ArrowRight':
+        case 'd':
+          if (lastDir.x !== -1) setDirection({ x: 1, y: 0 });
+          break;
+        case ' ':
+          setIsPaused(p => !p);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // --- Game Loop ---
+  useEffect(() => {
+    if (!isGameOver && !isPaused) {
+      gameLoopRef.current = setInterval(moveSnake, GAME_SPEED);
+    } else {
+      if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+    }
+    return () => {
+      if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+    };
+  }, [moveSnake, isGameOver, isPaused]);
+
+  // --- Actions ---
+  const restartGame = () => {
+    setSnake(INITIAL_SNAKE);
+    setDirection(INITIAL_DIRECTION);
+    setFood({ x: 5, y: 5 });
+    setIsGameOver(false);
+    setScore(0);
+    setIsPaused(false);
+    lastDirectionRef.current = INITIAL_DIRECTION;
+  };
+
   return (
-    <main className="min-h-screen w-full bg-deep-black flex flex-col items-center justify-center overflow-hidden selection:bg-white selection:text-black">
+    <main className="min-h-[100dvh] w-full bg-deep-black flex flex-col items-center justify-center p-6 sm:p-12 overflow-hidden selection:bg-white selection:text-black font-sans text-white">
       
-      {/* Content Container - Extreme Negative Space */}
-      <div className="relative z-10 w-full max-w-4xl px-6 flex flex-col items-center text-center">
-        
-        {/* Typographic Hero */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
+      {/* 1. Typographic Header */}
+      <div className="flex flex-col items-center text-center mb-10 space-y-4 max-w-xl">
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-12"
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          className="font-display font-black italic uppercase text-7xl md:text-9xl tracking-tighter text-white"
         >
-          <h1 className="font-display font-black italic uppercase text-6xl sm:text-8xl md:text-[10rem] leading-[0.85] tracking-tighter text-white opacity-90">
-            StreamVault
-          </h1>
-        </motion.div>
-
-        {/* Singular Minimalist Separator */}
-        <motion.div 
-          initial={{ scaleX: 0, opacity: 0 }}
-          animate={{ scaleX: 1, opacity: 1 }}
-          transition={{ duration: 1.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="w-12 h-[1px] bg-white/20 mb-16"
-        />
-
-        {/* Poetic Copy */}
-        <motion.div
+          Oops.
+        </motion.h1>
+        <motion.p 
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 2.5, delay: 1.4, ease: "easeOut" }}
-          className="space-y-8"
+          animate={{ opacity: 0.4 }}
+          transition={{ duration: 2, delay: 0.5 }}
+          className="text-sm md:text-base tracking-tight font-light leading-relaxed px-4"
         >
-          <h2 className="title-section text-white/70 font-light tracking-wide italic">
-            Le silence avant le spectacle.
-          </h2>
-          <p className="font-sans text-white/30 max-w-md mx-auto text-sm md:text-base leading-relaxed font-light tracking-tight">
-            Nos serveurs se synchronisent en coulisses. L'interface cinématique est en cours de recalibrage pour une immersion totale.
-          </p>
-        </motion.div>
-
-        {/* Metadata - Far at the bottom, ultra-minimalist */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 2, delay: 2.5, ease: "easeOut" }}
-          className="absolute bottom-12 left-0 right-0 flex justify-center gap-16 px-6"
-        >
-          <div className="flex flex-col items-center gap-2">
-            <span className="label-refined text-white/20">Statut</span>
-            <span className="font-sans text-[10px] text-white/40 tracking-widest uppercase">Maintenance active</span>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <span className="label-refined text-white/20">Support</span>
-            <span className="font-sans text-[10px] text-white/40 tracking-widest uppercase">support@streamvault.fr</span>
-          </div>
-        </motion.div>
-
+          Le serveur est en pause pour maintenance.<br className="hidden sm:block" />
+          En attendant, le record est de {Math.max(score, 0)} points.
+        </motion.p>
       </div>
 
-      {/* Film Grain - Barely visible for cinematic texture, breaking the digital perfect black */}
+      {/* 2. Snake Game Board */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, delay: 0.8 }}
+        className="relative group"
+      >
+        {/* Game Container */}
+        <div 
+          className="relative w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] border border-white/10 bg-white/[0.02] overflow-hidden"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+            gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
+          }}
+        >
+          {/* Render Food */}
+          <div 
+            className="bg-white/40 animate-pulse"
+            style={{
+              gridColumnStart: food.x + 1,
+              gridRowStart: food.y + 1,
+              borderRadius: '2px',
+            }}
+          />
+
+          {/* Render Snake */}
+          {snake.map((seg, i) => (
+            <div 
+              key={`${seg.x}-${seg.y}-${i}`}
+              className="bg-white"
+              style={{
+                gridColumnStart: seg.x + 1,
+                gridRowStart: seg.y + 1,
+                opacity: 1 - (i / snake.length) * 0.5, // Fading tail
+                borderRadius: '1px',
+                zIndex: snake.length - i,
+              }}
+            />
+          ))}
+
+          {/* Overlays */}
+          <AnimatePresence>
+            {(isGameOver || isPaused) && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
+              >
+                {isGameOver ? (
+                  <>
+                    <p className="font-display italic font-bold uppercase tracking-widest text-white/50 mb-4">Game Over</p>
+                    <p className="text-3xl font-black mb-8 italic uppercase tracking-tighter">{score} points</p>
+                    <button 
+                      onClick={restartGame}
+                      className="px-8 py-3 bg-white text-black font-bold uppercase text-xs tracking-[0.2em] hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      Rejouer
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-display italic font-bold uppercase tracking-widest text-white/50 mb-4">Pause</p>
+                    <button 
+                      onClick={() => setIsPaused(false)}
+                      className="px-8 py-3 bg-white text-black font-bold uppercase text-xs tracking-[0.2em] hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      Continuer
+                    </button>
+                  </>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Score Indicator */}
+        <div className="absolute -top-6 left-0 right-0 flex justify-between items-end px-1 opacity-20">
+          <span className="text-[10px] uppercase tracking-[0.3em] font-bold">Snake System v1</span>
+          <span className="text-xs font-mono">{score.toString().padStart(4, '0')}</span>
+        </div>
+      </motion.div>
+
+      {/* 3. Footer info - Now using flex gaps to avoid overlap */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5, delay: 1.2 }}
+        className="mt-16 flex flex-col sm:flex-row items-center gap-8 sm:gap-20 text-white/20"
+      >
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-50">Status</span>
+          <span className="text-[11px] font-medium tracking-widest uppercase">Maintenance</span>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-[9px] uppercase tracking-[0.4em] font-bold opacity-50">Contact</span>
+          <span className="text-[11px] font-medium tracking-widest uppercase">support@streamvault.fr</span>
+        </div>
+      </motion.div>
+
+      {/* Cinematic Grain Overlay */}
       <div 
-        className="pointer-events-none fixed inset-0 z-50 opacity-[0.02] mix-blend-overlay" 
+        className="pointer-events-none fixed inset-0 z-[100] opacity-[0.015] mix-blend-overlay" 
         style={{ 
           backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' 
         }} 
       />
-
-      {/* Subtle edge vignette */}
-      <div className="pointer-events-none fixed inset-0 z-40 bg-gradient-to-b from-black via-transparent to-black opacity-40"></div>
 
     </main>
   );
