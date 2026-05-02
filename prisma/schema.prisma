@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String              @id @default(cuid())
+  email             String?             @unique
+  passwordHash      String
+  salt              String
+  role              String              @default("user")
+  plan              String              @default("Starter")
+  createdAt         DateTime            @default(now())
+  preferences       Json?               @default("{}")
+  badges            String[]            @default([])
+  updatedAt         DateTime            @updatedAt
+  username          String?             @unique
+  ActivityLog       ActivityLog[]
+  comments          Comment[]
+  DevicePairingCode DevicePairingCode[]
+  notifications     Notification[]
+  profiles          Profile[]
+  progress          Progress[]
+  sessions          Session[]
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  avatarUrl String?
+  isChild   Boolean  @default(false)
+  pin       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Media {
+  id           String         @id @default(cuid())
+  title        String
+  type         String
+  description  String?
+  posterPath   String?
+  backdropPath String?
+  runtime      Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  saga         String?
+  tmdbId       String?        @unique
+  genres       String[]       @default([])
+  studios      String[]       @default([])
+  cast         Json?
+  releaseDate  DateTime?
+  voteAverage  Float?         @default(0)
+  comments     Comment[]
+  requests     MediaRequest[]
+  progress     Progress[]
+  seasons      Season[]
+}
+
+model Season {
+  id        String    @id @default(cuid())
+  number    Int
+  mediaId   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  episodes  Episode[]
+  media     Media     @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([mediaId, number])
+}
+
+model Episode {
+  id          String     @id @default(cuid())
+  number      Int
+  title       String?
+  streamUrl   String?
+  runtime     Int?
+  seasonId    String
+  createdAt   DateTime   @default(now())
+  description String?
+  updatedAt   DateTime   @updatedAt
+  season      Season     @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  progress    Progress[]
+
+  @@unique([seasonId, number])
+}
+
+model Progress {
+  id          String   @id @default(cuid())
+  userId      String
+  mediaId     String
+  episodeId   String?
+  position    Int      @default(0)
+  duration    Int      @default(0)
+  updatedAt   DateTime @updatedAt
+  isCompleted Boolean  @default(false)
+  episode     Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId, episodeId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  mediaId   String
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  mediaId   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  ip        String?
+  timestamp DateTime @default(now())
+  details   Json?
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model InvitationCode {
+  code      String    @id
+  used      Int       @default(0)
+  role      String    @default("user")
+  plan      String    @default("Starter")
+  expiresAt DateTime?
+  note      String?
+  createdBy String?
+  createdAt DateTime  @default(now())
+  maxUses   Int       @default(1)
+}
+
+model Session {
+  token     String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DevicePairingCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MediaRequest {
+  id        String   @id @default(cuid())
+  title     String
+  type      String
+  tmdbId    String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  mediaId   String?
+  userId    String?
+  media     Media?   @relation(fields: [mediaId], references: [id])
+}
+
+model SagaMetadata {
+  name       String   @id
+  bannerPath String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String
+  createdAt   DateTime @default(now())
+}
