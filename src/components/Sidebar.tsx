@@ -13,7 +13,8 @@ import {
   User,
   Bell,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userProvider";
@@ -130,6 +131,12 @@ export function Sidebar() {
                     <User className="w-4 h-4 text-white/60" />
                     <span className="text-sm font-medium">Changer de profil</span>
                   </Link>
+                  {user?.role === 'admin' && (
+                    <Link href="/admin" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group/admin">
+                      <Shield className="w-4 h-4 text-white/60 group-hover/admin:text-white transition-colors" />
+                      <span className="text-sm font-medium">Tableau de bord Admin</span>
+                    </Link>
+                  )}
                   <Link href="/settings" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
                     <User className="w-4 h-4 text-white/60" />
                     <span className="text-sm font-medium">Paramètres</span>
