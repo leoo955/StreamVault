@@ -2,8 +2,11 @@
 
 import { LayoutDashboard, Film, Tv, Users, Ticket, Activity, TrendingUp } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 
 export default function AdminDashboard() {
+  const [isGenerating, setIsGenerating] = useState(false)
+  
   const stats = [
     { label: 'Utilisateurs', value: '12', icon: Users, trend: '+2 cette semaine' },
     { label: 'Films', value: '148', icon: Film, trend: '+12 ce mois' },
@@ -103,14 +106,61 @@ export default function AdminDashboard() {
               <PlusSquareIcon size={16} />
               <span>Nouveau Média</span>
             </button>
-            <button className="group w-full flex items-center gap-4 bg-white/[0.03] border border-white/5 text-white/40 font-sans font-black uppercase tracking-[0.2em] text-[10px] py-5 px-8 rounded-2xl hover:bg-white/[0.06] hover:text-white hover:border-white/10 transition-all duration-500">
-              <Ticket size={16} />
+            <button 
+              onClick={async () => {
+                setIsGenerating(true);
+                try {
+                  const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+                  const res = await fetch("/api/invitations", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                      code: `SV-${randomCode}`,
+                      maxUses: 1,
+                      role: "user",
+                      plan: "PREMIUM"
+                    }),
+                  });
+                  if (res.ok) {
+                    const data = await res.json();
+                    alert(`Code généré : ${data.code}`);
+                  } else {
+                    alert("Erreur lors de la génération");
+                  }
+                } catch (e) {
+                  console.error(e);
+                } finally {
+                  setIsGenerating(false);
+                }
+              }}
+              disabled={isGenerating}
+              className="group w-full flex items-center gap-4 bg-white/[0.03] border border-white/5 text-white/40 font-sans font-black uppercase tracking-[0.2em] text-[10px] py-5 px-8 rounded-2xl hover:bg-white/[0.06] hover:text-white hover:border-white/10 transition-all duration-500 disabled:opacity-50"
+            >
+              {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Ticket size={16} />}
               <span>Générer Invitation</span>
             </button>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function Loader2({ className, size }: { className?: string, size?: number }) {
+  return (
+    <svg 
+      className={className}
+      width={size || 24} 
+      height={size || 24} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+    </svg>
   )
 }
 
