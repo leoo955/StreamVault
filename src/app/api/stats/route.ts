@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/db'
+import prisma, { formatMedia } from '@/lib/db'
 import { verifyJWT } from '@/lib/jwt'
 import { cookies } from 'next/headers'
 
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         series: seriesCount
       },
       recentLogs,
-      mostViewed
+      mostViewed: formatMedia(mostViewed)
     })
   } catch (error) {
     console.error('Error fetching stats:', error)

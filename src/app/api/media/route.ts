@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/db'
+import prisma, { formatMedia } from '@/lib/db'
 import { verifyJWT } from '@/lib/jwt'
 import { cookies } from 'next/headers'
 
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       }
     })
 
-    return NextResponse.json(media)
+    return NextResponse.json(formatMedia(media))
   } catch (error) {
     console.error('Error fetching media:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -74,16 +74,16 @@ export async function POST(request: Request) {
         posterPath,
         backdropPath,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
-        genres: genres || [],
-        studios: studios || [],
-        cast: cast || [],
+        genres: typeof genres === 'string' ? genres : JSON.stringify(genres || []),
+        studios: typeof studios === 'string' ? studios : JSON.stringify(studios || []),
+        cast: typeof cast === 'string' ? cast : JSON.stringify(cast || []),
         voteAverage: voteAverage || 0,
         runtime: runtime || 0,
         saga
       }
     })
 
-    return NextResponse.json(newMedia)
+    return NextResponse.json(formatMedia(newMedia))
   } catch (error: any) {
     if (error.code === 'P2002') {
       return NextResponse.json({ error: 'Media already exists' }, { status: 400 })

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/db'
+import prisma, { formatMedia } from '@/lib/db'
 import { verifyJWT } from '@/lib/jwt'
 import { cookies } from 'next/headers'
 
@@ -27,7 +27,7 @@ export async function GET(
       return NextResponse.json({ error: 'Media not found' }, { status: 404 })
     }
 
-    return NextResponse.json(media)
+    return NextResponse.json(formatMedia(media))
   } catch (error) {
     console.error('Error fetching media details:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -53,12 +53,16 @@ export async function PATCH(
     }
 
     const body = await request.json()
+    if (body.genres && typeof body.genres !== 'string') body.genres = JSON.stringify(body.genres)
+    if (body.studios && typeof body.studios !== 'string') body.studios = JSON.stringify(body.studios)
+    if (body.cast && typeof body.cast !== 'string') body.cast = JSON.stringify(body.cast)
+
     const updatedMedia = await prisma.media.update({
       where: { id },
       data: body
     })
 
-    return NextResponse.json(updatedMedia)
+    return NextResponse.json(formatMedia(updatedMedia))
   } catch (error) {
     console.error('Error updating media:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

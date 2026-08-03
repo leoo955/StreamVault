@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/db'
+import prisma, { formatMedia } from '@/lib/db'
 import { verifyJWT } from '@/lib/jwt'
 import { cookies } from 'next/headers'
 
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
         include: { media: true, episode: true },
         orderBy: { updatedAt: 'desc' }
       })
-      return NextResponse.json(allProgress)
+      return NextResponse.json(formatMedia(allProgress))
     }
 
     const progress = await prisma.progress.findFirst({
