@@ -79,7 +79,7 @@ export default function ProfilesPage() {
       opacity: 1, 
       scale: 1,
       y: 0,
-      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as any }
     }
   };
 
@@ -169,8 +169,8 @@ export default function ProfilesPage() {
           transition={{ delay: 1, duration: 1.5 }}
           className="mt-28 md:mt-36"
         >
-          <button className="px-10 py-3 rounded-full border border-white/5 text-white/20 text-[10px] tracking-[0.5em] uppercase hover:text-white hover:border-white/20 hover:bg-white/[0.02] transition-all duration-500">
-            Gérer les profils
+          <button onClick={() => router.push('/settings')} className="px-10 py-3 rounded-full border border-white/5 text-white/20 text-[10px] tracking-[0.5em] uppercase hover:text-white hover:border-white/20 hover:bg-white/[0.02] transition-all duration-500">
+             Gérer les Profils
           </button>
         </motion.div>
         

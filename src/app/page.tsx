@@ -84,6 +84,8 @@ export default function HomePage() {
     title: m.title,
     poster: utils.getTmdbImage(m.posterPath, "w500"),
     color: "",
+    studios: m.studios,
+    type: m.type as "movie" | "series",
   }));
 
   const movies = media.filter(m => m.type === 'movie').slice(0, 10).map(m => ({
@@ -91,6 +93,8 @@ export default function HomePage() {
     title: m.title,
     poster: utils.getTmdbImage(m.posterPath, "w500"),
     color: "",
+    studios: m.studios,
+    type: "movie" as const,
   }));
 
   const series = media.filter(m => m.type === 'series').slice(0, 10).map(m => ({
@@ -98,7 +102,10 @@ export default function HomePage() {
     title: m.title,
     poster: utils.getTmdbImage(m.posterPath, "w500"),
     color: "",
+    studios: m.studios,
+    type: "series" as const,
   }));
+
 
   return (
     <div className="flex flex-col w-full bg-deep-black overflow-hidden">

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Home, 
@@ -12,7 +12,6 @@ import {
   Plus, 
   User,
   Bell,
-  LogOut,
   ChevronDown,
   Shield
 } from "lucide-react";
@@ -26,7 +25,8 @@ import { useUser } from "@/lib/userProvider";
  */
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, logout } = useUser();
+  const router = useRouter();
+  const { user } = useUser();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -97,7 +97,7 @@ export function Sidebar() {
 
         {/* Actions */}
         <div className="flex items-center gap-6">
-          <button className="text-white/60 hover:text-white transition-colors duration-300">
+          <button onClick={() => router.push('/notifications')} className="text-white/60 hover:text-white transition-colors duration-300">
             <Bell className="w-5 h-5" />
           </button>
           
@@ -111,7 +111,7 @@ export function Sidebar() {
                   <img src={activeProfile.avatarUrl} alt={activeProfile.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white/40 text-xs font-bold uppercase">
-                    {activeProfile?.name?.charAt(0) || "U"}
+                    {activeProfile?.name?.charAt(0) || user?.username?.charAt(0) || "S"}
                   </div>
                 )}
               </div>
@@ -127,28 +127,20 @@ export function Sidebar() {
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   className="absolute top-full right-0 mt-4 w-56 glass-card-strong p-2 shadow-2xl"
                 >
-                  <Link href="/profiles" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
-                    <User className="w-4 h-4 text-white/60" />
-                    <span className="text-sm font-medium">Changer de profil</span>
-                  </Link>
-                  {user?.role === 'admin' && (
+                  <>
+                    <Link href="/profiles" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+                      <User className="w-4 h-4 text-white/60" />
+                      <span className="text-sm font-medium">Changer de profil</span>
+                    </Link>
                     <Link href="/admin" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group/admin">
                       <Shield className="w-4 h-4 text-white/60 group-hover/admin:text-white transition-colors" />
                       <span className="text-sm font-medium">Tableau de bord Admin</span>
                     </Link>
-                  )}
-                  <Link href="/settings" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
-                    <User className="w-4 h-4 text-white/60" />
-                    <span className="text-sm font-medium">Paramètres</span>
-                  </Link>
-                  <div className="h-px bg-white/5 my-2" />
-                  <button 
-                    onClick={() => logout()}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span className="text-sm font-medium">Se déconnecter</span>
-                  </button>
+                    <Link href="/settings" className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors">
+                      <User className="w-4 h-4 text-white/60" />
+                      <span className="text-sm font-medium">Paramètres</span>
+                    </Link>
+                  </>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -194,12 +186,12 @@ export function Sidebar() {
           <Link href="/search">
             <Search className="w-6 h-6 text-white" />
           </Link>
-          <Link href="/profiles" className="w-8 h-8 rounded-lg overflow-hidden bg-white/10">
+          <Link href={user ? "/profiles" : "/login"} className="w-8 h-8 rounded-lg overflow-hidden bg-white/10">
             {activeProfile?.avatarUrl ? (
               <img src={activeProfile.avatarUrl} alt={activeProfile.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-white/40 text-xs font-bold uppercase">
-                {activeProfile?.name?.charAt(0) || "U"}
+                {activeProfile?.name?.charAt(0) || user?.username?.charAt(0) || "S"}
               </div>
             )}
           </Link>

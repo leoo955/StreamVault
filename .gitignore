@@ -40,4 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
+/src/generated
+*.db
+*.db-journal
+test-db.ts
+taa.py
+temp_img.html
+docker-compose.yml
+image.png

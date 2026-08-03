@@ -1,23 +1,37 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@/lib/userProvider';
 
 /**
  * Hook to extract the dominant color from an image URL.
  * Uses a canvas-based approach to analyze pixel data.
+ * If the user has explicitly set a custom accent color in their preferences, it overrides this extraction.
  */
 export function useImageColors(imageUrl: string | null | undefined) {
+  const { user } = useUser();
+  const customColor = user?.preferences?.accentColor;
+
   const [colors, setColors] = useState<{
     dominant: string;
     vibrant: string;
     isDark: boolean;
   }>({
-    dominant: '#FFFFFF', // Use neutral white/grey as fallback instead of yellow
-    vibrant: '#FFFFFF',
+    dominant: customColor || '#EAB308', // Fallback to user's color or yellow
+    vibrant: customColor || '#EAB308',
     isDark: false
   });
 
+  // Keep it updated if the user changes it in settings
   useEffect(() => {
+    if (customColor) {
+      setColors({ dominant: customColor, vibrant: customColor, isDark: false });
+    }
+  }, [customColor]);
+
+  useEffect(() => {
+    // If the user has a custom color, skip extraction
+    if (customColor) return;
     if (!imageUrl || imageUrl === "") return;
 
     const img = new Image();
@@ -61,7 +75,8 @@ export function useImageColors(imageUrl: string | null | undefined) {
     };
 
     img.src = imageUrl;
-  }, [imageUrl]);
+  }, [imageUrl, customColor]);
 
   return colors;
 }
+

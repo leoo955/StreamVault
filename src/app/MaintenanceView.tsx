@@ -32,7 +32,7 @@ export default function MaintenanceView() {
 
   // --- Logic: Random Food ---
   const generateFood = useCallback((currentSnake: typeof INITIAL_SNAKE) => {
-    let newFood;
+    let newFood: { x: number; y: number };
     while (true) {
       newFood = {
         x: Math.floor(Math.random() * GRID_SIZE),

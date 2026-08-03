@@ -80,8 +80,7 @@ export default function SeriesPage() {
               className="bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-14 pr-8 text-[11px] font-bold tracking-widest focus:outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all duration-700 w-72 placeholder:text-white/10"
             />
           </div>
-          <button className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/30 hover:text-white hover:border-white/20 hover:bg-white/[0.06] transition-all duration-700">
-            <Filter size={20} />
+          <button onClick={() => alert('Filtres à venir')} className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center text-white/30 hover:text-white hover:border-white/20 hover:bg-white/[0.06] transition-all duration-700">            <Filter size={20} />
           </button>
         </div>
       </div>

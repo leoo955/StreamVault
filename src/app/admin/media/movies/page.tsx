@@ -5,8 +5,10 @@ import { Plus, Search, Trash2, Edit3, Film, Loader2, X, Save } from "lucide-reac
 import { cn } from "@/lib/utils";
 import * as utils from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function AdminMoviesPage() {
+  const router = useRouter();
   const [movies, setMovies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -99,7 +101,7 @@ export default function AdminMoviesPage() {
                 className="bg-white/[0.02] border border-white/5 rounded-xl py-3 pl-12 pr-6 text-[10px] font-bold tracking-widest focus:outline-none focus:border-white/10 transition-all w-64 placeholder:text-white/5"
               />
            </div>
-           <button className="bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
+           <button onClick={() => router.push('/admin/media/add')} className="bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
               <Plus size={14} />
               Ajouter
            </button>

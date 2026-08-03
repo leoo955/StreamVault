@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/client"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model User {
@@ -15,8 +15,8 @@ model User {
   role              String              @default("user")
   plan              String              @default("Starter")
   createdAt         DateTime            @default(now())
-  preferences       Json?               @default("{}")
-  badges            String[]            @default([])
+  preferences       String?             @default("{}")
+  badges            String?             @default("[]")
   updatedAt         DateTime            @updatedAt
   username          String?             @unique
   ActivityLog       ActivityLog[]
@@ -48,13 +48,14 @@ model Media {
   posterPath   String?
   backdropPath String?
   runtime      Int?
+  streamUrl    String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   saga         String?
   tmdbId       String?        @unique
-  genres       String[]       @default([])
-  studios      String[]       @default([])
-  cast         Json?
+  genres       String?        @default("[]")
+  studios      String?        @default("[]")
+  cast         String?        @default("[]")
   releaseDate  DateTime?
   voteAverage  Float?         @default(0)
   comments     Comment[]
@@ -134,7 +135,7 @@ model ActivityLog {
   action    String
   ip        String?
   timestamp DateTime @default(now())
-  details   Json?
+  details   String?
   user      User?    @relation(fields: [userId], references: [id])
 }
 

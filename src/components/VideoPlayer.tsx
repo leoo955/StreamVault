@@ -100,6 +100,12 @@ export function VideoPlayer({ id, title, posterUrl, streamUrl }: VideoPlayerProp
     resetControlsTimeout();
   };
 
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
+
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
@@ -168,7 +174,6 @@ export function VideoPlayer({ id, title, posterUrl, streamUrl }: VideoPlayerProp
         onPlaying={() => { setIsLoading(false); setIsPlaying(true); }}
         onPause={() => setIsPlaying(false)}
         muted={isMuted}
-        volume={volume}
         onClick={togglePlay}
         autoPlay
       />

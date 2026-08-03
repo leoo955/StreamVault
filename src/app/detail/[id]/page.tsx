@@ -44,7 +44,7 @@ export default function DetailPage() {
               .map((m: any) => ({
                 id: m.id,
                 title: m.title,
-                poster: getTmdbImage(m.posterPath, "w500"),
+                poster: utils.getTmdbImage(m.posterPath, "w500"),
                 color: "", // Dynamically extracted by MediaRow/Card
               }));
             setSuggestions(filtered);
@@ -98,6 +98,11 @@ export default function DetailPage() {
             >
               {/* Meta */}
               <div className="flex items-center gap-6 mb-8">
+                {media.studios?.length > 0 && (
+                  <span className="px-3 py-1.5 rounded-md bg-accent/20 backdrop-blur-xl text-[9px] font-black tracking-[0.2em] text-accent border border-accent/20 uppercase">
+                    {media.studios[0]}
+                  </span>
+                )}
                 <span className="px-3 py-1.5 rounded-md bg-white/5 backdrop-blur-xl text-[9px] font-black tracking-[0.2em] text-white/80 border border-white/10 uppercase">
                   4K HDR · ULTRA VISION
                 </span>

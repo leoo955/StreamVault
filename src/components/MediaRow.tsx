@@ -11,6 +11,8 @@ interface MediaItem {
   title: string;
   poster: string;
   color: string;
+  studios?: string[];
+  type?: "movie" | "series";
 }
 
 interface MediaRowProps {
@@ -18,6 +20,7 @@ interface MediaRowProps {
   items: MediaItem[];
   delay?: number;
 }
+
 
 /**
  * MediaRow component.
@@ -67,6 +70,8 @@ export function MediaRow({ title, items, delay = 0 }: MediaRowProps) {
                 title={movie.title}
                 posterUrl={movie.poster}
                 accentColor={movie.color}
+                studios={movie.studios}
+                type={movie.type}
               />
             </motion.div>
           ))}

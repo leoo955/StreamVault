@@ -13,6 +13,7 @@ interface MediaCardProps {
   posterUrl: string;
   accentColor?: string;
   type?: "movie" | "series";
+  studios?: string[];
 }
 
 /**
@@ -27,7 +28,8 @@ export function MediaCard({
   title, 
   posterUrl, 
   accentColor, 
-  type = "movie" 
+  type = "movie",
+  studios = []
 }: MediaCardProps) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
@@ -35,6 +37,7 @@ export function MediaCard({
   const extractedColors = useImageColors(posterUrl);
   
   const finalAccent = accentColor || extractedColors.dominant;
+  const mainStudio = studios?.[0];
 
   const handleCardClick = () => {
     router.push(`/detail/${id}`);
@@ -80,6 +83,13 @@ export function MediaCard({
       {/* ── Card Body ── */}
       <div className="relative w-full h-full rounded-xl md:rounded-2xl overflow-hidden bg-surface-light border border-white/5 z-10">
         
+        {/* Studio Badge */}
+        {mainStudio && (
+          <div className="absolute top-3 right-3 z-40 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-md">
+            <span className="text-[7px] font-black text-white uppercase tracking-widest">{mainStudio}</span>
+          </div>
+        )}
+
         {/* Skeleton placeholder */}
         {!imgLoaded && <div className="absolute inset-0 skeleton" />}
 

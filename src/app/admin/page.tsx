@@ -1,8 +1,8 @@
 "use client";
 
-import { LayoutDashboard, Film, Tv, Users, Ticket, Activity, TrendingUp, Search } from 'lucide-react'
+import { LayoutDashboard, Film, Tv, Users, Ticket, Activity, TrendingUp, Search, RefreshCw, PlusSquare } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function AdminDashboard() {
@@ -10,23 +10,32 @@ export default function AdminDashboard() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/admin/stats");
-        if (res.ok) {
-          const json = await res.json();
-          setData(json);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setIsRefreshing(true);
+    else setIsLoading(true);
+    
+    try {
+      const res = await fetch("/api/admin/stats", {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
       }
-    };
-    fetchData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const stats = [
     { label: 'Utilisateurs', value: data?.stats?.users || '0', icon: Users, trend: '+2 cette semaine' },
@@ -39,8 +48,10 @@ export default function AdminDashboard() {
     const d = new Date(date);
     const now = new Date();
     const diff = now.getTime() - d.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours < 1) return "à l'instant";
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    if (minutes < 1) return "à l'instant";
+    if (minutes < 60) return `il y a ${minutes}m`;
     if (hours < 24) return `il y a ${hours}h`;
     return `il y a ${Math.floor(hours / 24)}j`;
   };
@@ -48,14 +59,25 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-16">
       {/* ── Welcome Header ── */}
-      <div className="flex flex-col gap-3">
-        <h2 className="font-display font-light text-4xl md:text-5xl text-white tracking-widest uppercase flex items-center gap-6">
-          <LayoutDashboard className="text-white/20" size={40} />
-          Vue d'ensemble
-        </h2>
-        <p className="text-white/20 font-bold tracking-[0.4em] uppercase text-[10px] ml-16">
-          Monitoring & Contrôle Système
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div className="flex flex-col gap-3">
+          <h2 className="font-display font-light text-4xl md:text-5xl text-white tracking-widest uppercase flex items-center gap-6">
+            <LayoutDashboard className="text-white/20" size={40} />
+            Vue d'ensemble
+          </h2>
+          <p className="text-white/20 font-bold tracking-[0.4em] uppercase text-[10px] ml-16">
+            Monitoring & Contrôle Système
+          </p>
+        </div>
+
+        <button 
+          onClick={() => fetchData(true)}
+          disabled={isRefreshing}
+          className="group flex items-center gap-3 bg-white/[0.03] border border-white/5 hover:border-white/10 hover:bg-white/[0.06] text-white/40 hover:text-white px-6 py-3 rounded-xl transition-all duration-500"
+        >
+          <RefreshCw size={14} className={isRefreshing ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-700"} />
+          <span className="text-[10px] font-black uppercase tracking-widest">Rafraîchir</span>
+        </button>
       </div>
 
       {/* ── Stats Grid ── */}

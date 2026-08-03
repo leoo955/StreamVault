@@ -144,7 +144,7 @@ export function HeroHeader({ items, autoPlayInterval = 10000 }: HeroHeaderProps)
                 <Play size={22} fill="currentColor" className="group-hover:scale-110 transition-transform" />
                 <span>REGARDER</span>
               </button>
-              <button className="btn-glass group">
+              <button onClick={() => router.push('/my-list')} className="btn-glass group">
                 <Plus size={22} className="group-hover:rotate-90 transition-transform" />
                 <span>MA LISTE</span>
               </button>

@@ -21,12 +21,23 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// Mode sans connexion : utilisateur admin par défaut
+const defaultAdmin: User = {
+  id: "default-admin-id",
+  email: "admin@streamvault.test",
+  username: "Admin",
+  role: "admin",
+  plan: "ULTIMATE",
+  preferences: {},
+  profiles: [{ id: "default-profile", name: "Principal", isChild: false }]
+};
+
 // Module-level cache to prevent flickering on navigation
-let cachedUser: User | null = null;
+let cachedUser: User | null = defaultAdmin;
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(cachedUser);
-  const [isLoading, setIsLoading] = useState(!cachedUser);
+  const [isLoading, setIsLoading] = useState(false);
 
   const refreshUser = async () => {
     try {
@@ -36,26 +47,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUser(data);
         cachedUser = data;
       } else {
-        setUser(null);
-        cachedUser = null;
+        setUser(defaultAdmin);
+        cachedUser = defaultAdmin;
       }
     } catch (err) {
-      setUser(null);
-      cachedUser = null;
+      setUser(defaultAdmin);
+      cachedUser = defaultAdmin;
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (err) {
-      console.error("Logout error", err);
-    }
-    setUser(null);
-    cachedUser = null;
-    window.location.href = "/login";
+    setUser(defaultAdmin);
+    cachedUser = defaultAdmin;
   };
 
   useEffect(() => {

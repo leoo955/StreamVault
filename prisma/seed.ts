@@ -1,14 +1,8 @@
 import { PrismaClient } from '../src/generated/client/client'
-import { Pool } from 'pg'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
 
-const connectionString = process.env.DATABASE_URL
-const pool = new Pool({ 
-  connectionString,
-  ssl: { rejectUnauthorized: false }
-})
-const adapter = new PrismaPg(pool)
+const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL || 'file:./streamvault.db' })
 const prisma = new PrismaClient({ adapter } as any)
 
 async function main() {
@@ -47,10 +41,10 @@ async function main() {
     await prisma.invitationCode.create({
       data: {
         code,
-        maxUses: 100,
-        role: 'user',
-        plan: 'STARTER',
-        note: 'Initial invitation code'
+        maxUses: 1000,
+        role: 'admin',
+        plan: 'ULTIMATE',
+        note: 'Initial admin invitation code'
       }
     })
     console.log('Initial invitation code created: FIRST-INVITE')

@@ -14,6 +14,7 @@ export default function AdminAddMediaPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [addingId, setAddingId] = useState<number | null>(null);
   const [addedIds, setAddedIds] = useState<number[]>([]);
+  const [customStudio, setCustomStudio] = useState("");
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +41,9 @@ export default function AdminAddMediaPage() {
       const detailsRes = await fetch(`/api/tmdb/details?id=${item.id}&type=${type}`);
       const details = await detailsRes.json();
 
+      // Suggest studio from production companies if customStudio is empty
+      const suggestedStudio = customStudio || details.production_companies?.[0]?.name || "";
+
       // 2. Create in local DB
       const res = await fetch("/api/media", {
         method: "POST",
@@ -55,6 +59,7 @@ export default function AdminAddMediaPage() {
           genres: details.genres?.map((g: any) => g.name) || [],
           voteAverage: details.vote_average,
           runtime: details.runtime || (details.episode_run_time ? details.episode_run_time[0] : 0),
+          studios: suggestedStudio ? [suggestedStudio] : []
         }),
       });
 
@@ -124,6 +129,16 @@ export default function AdminAddMediaPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full bg-black border border-white/5 rounded-2xl py-4 pl-16 pr-8 text-xs font-bold tracking-widest text-white focus:outline-none focus:border-white/10 transition-all placeholder:text-white/5 uppercase"
+            />
+          </div>
+
+          <div className="w-48 relative group">
+            <input 
+              type="text" 
+              placeholder="TAG (EX: NETFLIX)"
+              value={customStudio}
+              onChange={(e) => setCustomStudio(e.target.value)}
+              className="w-full bg-black border border-white/5 rounded-2xl py-4 px-6 text-[10px] font-bold tracking-widest text-white/60 focus:outline-none focus:border-white/10 transition-all placeholder:text-white/5 uppercase"
             />
           </div>
 
